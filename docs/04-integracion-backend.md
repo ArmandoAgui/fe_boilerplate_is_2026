@@ -1,5 +1,7 @@
 # Integración entre Next.js y NestJS
 
+> Actualización de alcance (16/10/2026): el equipo de cinco integrantes planifica los diez módulos y adaptación de autenticación en cuatro semanas. Se conserva el análisis técnico estático; esta corrección no implementa funcionalidades.
+
 Bases analizadas: frontend `861ee56`, backend `92a451f`. Los archivos del backend citados como `backend: ruta` se encuentran en el fork `ArmandoAgui/be_boilerplate_is_2026`; las rutas con enlaces relativos son de este frontend.
 
 ## Compatibilidad existente
@@ -48,7 +50,7 @@ Que un componente esté implementado no significa que se probó en ejecución. E
 
 Sin autorización por rol y unidad no se pueden proteger estados de cuenta, visitas, paquetes, votos ni datos privados del directorio. Identidad y pertenencia deben tener contrato común. Cuotas, reservas y votaciones necesitarán consistencia e idempotencia; reportes dependerán de definiciones de datos de esos módulos, y notificaciones de un contrato transversal. El backend actual no implementa esas garantías de negocio.
 
-El PDF define un módulo por equipo dentro de diez equipos. Debe confirmarse cuál corresponde a Armando, Heber, Guille, Serrato y Yael antes de convertir la propuesta global en tareas de desarrollo. Véanse `backend: docs/07-propuesta-plataforma-condominios.md` y `docs/06-riesgos-y-recomendaciones.md` para dependencias y reparto sugerido.
+Para este equipo se confirma el desarrollo de los diez módulos y adaptación de autenticación. La distribución general del PDF entre diez equipos se aclarará con cátedra, sin reducir el alcance. Los contratos entre módulos y responsables se acuerdan dentro del equipo de cinco integrantes.
 
 ## Verificación futura propuesta
 
@@ -56,7 +58,7 @@ El PDF define un módulo por equipo dentro de diez equipos. Debe confirmarse cu�
 2. Levantar entorno de desarrollo aislado y aplicar migraciones revisadas; usar seed demo solo en desarrollo.
 3. Probar health por `/api/v1`, login válido/erróneo y registro; inspeccionar atributos de cookie sin publicar su valor.
 4. Incorporar y probar consulta de usuario, vencimiento, renovación y logout remoto cuando se implemente la sesión completa.
-5. Probar permisos y aislamiento por unidad/rol antes de conectar pantallas del módulo asignado.
+5. Probar permisos y aislamiento por unidad/rol antes de conectar pantallas de los módulos de la plataforma.
 
 ## Git de esta entrega
 
