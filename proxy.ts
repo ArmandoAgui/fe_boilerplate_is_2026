@@ -14,7 +14,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.nextUrl));
   }
 
-  if (isPublicRoute && hasSession) {
+  if (isPublicRoute && hasSession && !request.nextUrl.searchParams.has("expired")) {
     return NextResponse.redirect(new URL("/", request.nextUrl));
   }
 
