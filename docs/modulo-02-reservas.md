@@ -98,3 +98,14 @@ CI `.github/workflows/reservas.yml`: instalación, lint, typecheck, unitarias y 
 - Desactivar impide nuevas reservas, conserva las confirmadas y permite consultarlas/cancelarlas por unidad; el área inactiva no tiene disponibilidad consultable.
 - `npm audit` informa avisos heredados: Next 16.3.6 crítico y zod transitivo alto. La actualización amplia del framework debe revisarse antes de un despliegue público; este PR conserva las versiones base. No se afirma ausencia de vulnerabilidades ajenas al módulo.
 - GitHub devolvió 403 al consultar protección de main con la integración; no se alteraron reglas. El usuario pidió asignar revisores posteriormente: los PR se dejan sin solicitudes de revisión automáticas y nunca se fusionan.
+
+
+## Apariencia: claro, oscuro y sistema
+
+El selector **Apariencia** está en login y en la barra de la plataforma. Permite Claro, Oscuro y Sistema; Sistema sigue los cambios de preferencia del dispositivo mediante CSS. Se guarda la elección un año en una cookie de presentación, independiente de la sesión. El layout lee esa cookie y renderiza el tema desde el servidor para evitar mostrar un tema incorrecto durante la carga. No se añaden dependencias.
+
+`components/theme-provider.tsx` concentra estado/selector; `app/globals.css` define tokens semánticos para fondo, superficie, texto secundario, bordes, controles, acciones, errores y disponibilidad. Se usan marfil suave y salvia en claro, verde grisáceo en oscuro. Se eliminan fondos blanco/negro puros y colores fijos por pantalla. Los controles nativos también siguen color-scheme. Se usa la fuente Geist existente, controles de al menos 44px, foco de teclado explícito y reducción de movimiento para el skeleton.
+
+Verificación de esta mejora: 21 pruebas de componentes pasan; dos escenarios nuevos `e2e/tema.spec.ts` comprueban elección, persistencia al recargar/navegar/cerrar sesión, tema SSR, preferencia del sistema en vivo, teclado y ausencia de desbordamiento móvil. Se comprueba contraste de texto de al menos 4.5:1 para los pares principales, texto secundario, botones, estados y errores en ambos temas; esto no equivale a una auditoría integral de accesibilidad. Lint, typecheck y build pasan.
+
+Capturas actualizadas: [Tema claro](screenshots/tema-claro.png) y [Tema oscuro](screenshots/tema-oscuro.png).

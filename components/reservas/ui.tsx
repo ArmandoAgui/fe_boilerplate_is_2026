@@ -19,11 +19,11 @@ export function Titulo({
 }) {
   return (
     <header className="mb-7">
-      <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+      <p className="text-sm font-medium text-accent">
         Condominio · Áreas comunes
       </p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">{titulo}</h1>
-      <p className="mt-2 text-zinc-600 dark:text-zinc-400">{detalle}</p>
+      <p className="mt-2 text-muted">{detalle}</p>
     </header>
   );
 }
@@ -35,9 +35,7 @@ export function Catalogo({ areas }: { areas: Area[] }) {
       {areas.map((a) => (
         <article key={a.id} className="panel">
           <h2 className="text-xl font-semibold">{a.nombre}</h2>
-          <p className="my-3 text-zinc-600 dark:text-zinc-400">
-            Capacidad: {a.capacidad} personas
-          </p>
+          <p className="my-3 text-muted">Capacidad: {a.capacidad} personas</p>
           <Link className="button" href={`/areas/${a.id}/disponibilidad`}>
             Consultar disponibilidad <span aria-hidden>→</span>
           </Link>

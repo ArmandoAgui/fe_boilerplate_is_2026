@@ -52,10 +52,10 @@ export function Disponibilidad({
         {datos.bloques.map((b) => {
           const clase =
             b.estado === "DISPONIBLE"
-              ? "border-emerald-500 bg-emerald-50 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-100"
+              ? "availability-free"
               : b.estado === "OCUPADO"
-                ? "border-zinc-300 bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100"
-                : "border-zinc-300 text-zinc-600 dark:text-zinc-400 [background-image:repeating-linear-gradient(135deg,transparent,transparent_6px,#88888812_6px,#88888812_8px)]";
+                ? "availability-busy"
+                : "availability-out";
           const contenido = (
             <>
               <span className="block font-semibold">
@@ -74,14 +74,14 @@ export function Disponibilidad({
           return b.estado === "DISPONIBLE" && rol === "RESIDENTE" ? (
             <Link
               key={b.inicio}
-              className={`rounded-lg border p-4 hover:ring-2 hover:ring-emerald-600 ${clase}`}
+              className={`rounded-xl border p-4 ${clase}`}
               aria-label={`Reservar ${b.inicio}, disponible`}
               href={`/reservas/nueva?areaId=${datos.areaId}&fecha=${datos.fecha}&hora=${b.inicio}`}
             >
               {contenido}
             </Link>
           ) : (
-            <div key={b.inicio} className={`rounded-lg border p-4 ${clase}`}>
+            <div key={b.inicio} className={`rounded-xl border p-4 ${clase}`}>
               {contenido}
             </div>
           );

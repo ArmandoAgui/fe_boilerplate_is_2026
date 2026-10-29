@@ -2,6 +2,11 @@
 
 ## Creados
 
+- `components/theme-provider.tsx`
+- `e2e/tema.spec.ts`
+- `docs/screenshots/tema-claro.png`
+- `docs/screenshots/tema-oscuro.png`
+
 - `.github/workflows/reservas.yml`
 - `app/(plataforma)/admin/areas/page.tsx`
 - `app/(plataforma)/areas/[id]/disponibilidad/page.tsx`
@@ -37,6 +42,9 @@
 - `vitest.config.mts`
 
 ## Modificados o trasladados
+
+- `app/login/page.tsx` (selector y superficies por tema)
+- `app/login/login-form.tsx` (controles compartidos y foco)
 
 - `M	.env.example`
 - `M	.gitignore`

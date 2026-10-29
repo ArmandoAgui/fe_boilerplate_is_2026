@@ -6,7 +6,7 @@ export default function Loading() {
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="h-36 animate-pulse rounded-xl bg-zinc-200 dark:bg-zinc-800"
+            className="h-36 animate-pulse rounded-xl bg-surface-alt"
           />
         ))}
       </div>

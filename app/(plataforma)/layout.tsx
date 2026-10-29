@@ -1,3 +1,4 @@
+import { ThemePicker } from "@/components/theme-provider";
 import { api, usuarioActual } from "@/lib/api";
 import { logout } from "@/app/actions/auth";
 import { AuthProvider } from "@/components/auth-provider";
@@ -15,14 +16,15 @@ export default async function PlataformaLayout({
       : [];
   return (
     <AuthProvider usuario={usuario} unidades={unidades}>
-      <header className="border-b border-zinc-200 dark:border-zinc-800">
+      <header className="site-header">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5 px-5 py-5">
           <div>
             <p className="mb-3 text-lg font-semibold">Nuestra comunidad</p>
             <Navegacion rol={usuario.rol} />
           </div>
-          <div className="flex items-center gap-4 text-sm">
-            <span>{usuario.nombre}</span>
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <span className="text-muted">{usuario.nombre}</span>
+            <ThemePicker />
             <form action={logout}>
               <button className="button-secondary">Cerrar sesión</button>
             </form>
@@ -32,7 +34,7 @@ export default async function PlataformaLayout({
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-9">
         {children}
       </main>
-      <footer className="mx-auto w-full max-w-6xl px-5 py-6 text-xs text-zinc-500">
+      <footer className="mx-auto w-full max-w-6xl px-5 py-6 text-xs text-muted">
         Horarios de El Salvador · UTC−6
       </footer>
     </AuthProvider>

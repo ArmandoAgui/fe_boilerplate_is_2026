@@ -51,11 +51,11 @@ export function MisReservas({
   return (
     <>
       {confirmada && (
-        <p role="status" className="panel mb-5 border-emerald-600">
+        <p role="status" className="panel mb-5 border-accent">
           Reserva confirmada · {confirmada}
         </p>
       )}
-      <p role="status" className="mb-4 text-emerald-700 dark:text-emerald-400">
+      <p role="status" className="mb-4 text-accent">
         {mensaje}
       </p>
       {lista.datos.length === 0 ? (
@@ -71,7 +71,7 @@ export function MisReservas({
                 <div className="flex flex-wrap justify-between gap-2">
                   <p className="font-mono text-sm">{r.codigo}</p>
                   <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${r.estado === "CONFIRMADA" ? "bg-emerald-100 text-emerald-900" : "bg-zinc-200 text-zinc-800"}`}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${r.estado === "CONFIRMADA" ? "status-confirmed" : "status-cancelled"}`}
                   >
                     {r.estado === "CONFIRMADA" ? "Confirmada" : "Cancelada"}
                   </span>
@@ -79,17 +79,17 @@ export function MisReservas({
                 <h2 className="my-3 text-xl font-semibold">{r.areaNombre}</h2>
                 <dl className="grid gap-2 text-sm">
                   <div>
-                    <dt className="inline text-zinc-500">Fecha y horario: </dt>
+                    <dt className="inline text-muted">Fecha y horario: </dt>
                     <dd className="inline">
                       {fechaHora(r.inicio)} – {hora(r.fin)}
                     </dd>
                   </div>
                   <div>
-                    <dt className="inline text-zinc-500">Unidad: </dt>
+                    <dt className="inline text-muted">Unidad: </dt>
                     <dd className="inline">{r.unidadCodigo}</dd>
                   </div>
                   <div>
-                    <dt className="inline text-zinc-500">Asistentes: </dt>
+                    <dt className="inline text-muted">Asistentes: </dt>
                     <dd className="inline">{r.asistentes}</dd>
                   </div>
                 </dl>
@@ -136,7 +136,7 @@ export function MisReservas({
       <dialog
         ref={dialog}
         aria-labelledby="cancelacion-titulo"
-        className="panel m-auto max-w-md backdrop:bg-black/50"
+        className="panel m-auto max-w-md"
       >
         <h2 id="cancelacion-titulo" className="text-lg font-semibold">
           ¿Cancelar la reserva {seleccionada?.codigo}? Esta acción no se puede

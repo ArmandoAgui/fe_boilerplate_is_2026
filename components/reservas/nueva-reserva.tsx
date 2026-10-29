@@ -173,7 +173,7 @@ export function NuevaReserva({
         </label>
         <label>
           Asistentes{" "}
-          <span className="text-sm text-zinc-500">
+          <span className="text-sm text-muted">
             (capacidad máxima: {area?.capacidad ?? "—"})
           </span>
           <input
@@ -204,7 +204,7 @@ export function NuevaReserva({
           Volver a áreas
         </Link>
       </div>
-      <p className="mt-4 text-sm text-zinc-500">
+      <p className="mt-4 text-sm text-muted">
         Cada unidad puede tener hasta 2 reservas confirmadas futuras.
       </p>
     </form>

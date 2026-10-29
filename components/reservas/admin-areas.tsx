@@ -70,7 +70,7 @@ export function AdminAreas({ areas }: { areas: Area[] }) {
   }
   return (
     <>
-      <p role="status" className="mb-4 text-emerald-700 dark:text-emerald-400">
+      <p role="status" className="mb-4 text-accent">
         {mensaje}
       </p>
       {!abierto ? (
@@ -81,12 +81,12 @@ export function AdminAreas({ areas }: { areas: Area[] }) {
           {!areas.length ? (
             <p className="panel">Aún no hay áreas registradas</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+            <div className="overflow-x-auto rounded-xl border border-line">
               <table className="w-full text-left text-sm">
                 <caption className="sr-only">
                   Áreas y horarios registrados
                 </caption>
-                <thead className="bg-zinc-100 dark:bg-zinc-900">
+                <thead className="bg-surface-alt">
                   <tr>
                     {[
                       "Nombre",
@@ -103,10 +103,7 @@ export function AdminAreas({ areas }: { areas: Area[] }) {
                 </thead>
                 <tbody>
                   {areas.map((a) => (
-                    <tr
-                      key={a.id}
-                      className="border-t border-zinc-200 dark:border-zinc-800"
-                    >
+                    <tr key={a.id} className="border-t border-line">
                       <th scope="row" className="p-4">
                         {a.nombre}
                       </th>
@@ -198,7 +195,7 @@ export function AdminAreas({ areas }: { areas: Area[] }) {
           </label>
           <fieldset aria-describedby="horarios-error">
             <legend className="mb-4 font-semibold">Horarios por día</legend>
-            <p className="mb-4 text-sm text-zinc-500">
+            <p className="mb-4 text-sm text-muted">
               Añade varias franjas para horarios partidos. Las reservas
               existentes se conservan al editar.
             </p>
@@ -206,7 +203,7 @@ export function AdminAreas({ areas }: { areas: Area[] }) {
               {horarios.map((h, i) => (
                 <div
                   key={i}
-                  className="grid gap-3 rounded-lg border border-zinc-200 p-3 sm:grid-cols-[1fr_1fr_1fr_auto] dark:border-zinc-800"
+                  className="grid gap-3 rounded-lg border border-line bg-surface p-3 sm:grid-cols-[1fr_1fr_1fr_auto]"
                 >
                   <label>
                     Día
