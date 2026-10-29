@@ -34,3 +34,9 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Módulo 2 — Reservas H5–H8 (Sonnet 5)
+
+Implementado por Armando Antonio Aguilar Rosales. Configuración, pantallas, contratos,
+pruebas y capturas: [docs/modulo-02-reservas.md](docs/modulo-02-reservas.md).
+Configura `API_URL` con el prefijo `/api/v1` y ejecuta frontend en otro puerto.
