@@ -2,8 +2,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { crearReserva } from "@/app/actions/reservas";
-import { useAuthStore } from "@/components/auth-provider";
-import { fechaValida, limiteFecha, type Area } from "@/lib/reservas";
+import { fechaValida, type Area } from "@/lib/reservas";
 export function NuevaReserva({
   areas,
   hoy,
@@ -13,12 +12,10 @@ export function NuevaReserva({
   hoy: string;
   inicial: { areaId?: string; fecha?: string; hora?: string };
 }) {
-  const unidades = useAuthStore((s) => s.unidades);
-  const [areaId, setAreaId] = useState(inicial.areaId ?? "");
-  const [fecha, setFecha] = useState(inicial.fecha ?? hoy);
-  const [hora, setHora] = useState(inicial.hora ?? "");
+  const areaId = inicial.areaId ?? "";
+  const fecha = inicial.fecha ?? "";
+  const hora = inicial.hora ?? "";
   const [duracion, setDuracion] = useState(1);
-  const [unidadId, setUnidadId] = useState(unidades[0]?.id ?? "");
   const [asistentes, setAsistentes] = useState(1);
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
@@ -35,9 +32,6 @@ export function NuevaReserva({
       : "",
     hora: !/^([01]\d|2[0-3]):00$/.test(hora)
       ? "Seleccione una hora en punto"
-      : "",
-    unidad: !unidades.some((u) => u.id === unidadId)
-      ? "Seleccione una unidad vinculada"
       : "",
     asistentes:
       !Number.isInteger(asistentes) ||
@@ -65,13 +59,28 @@ export function NuevaReserva({
   }
   if (!areas.length)
     return <p className="panel">Aún no hay áreas activas disponibles</p>;
-  if (!unidades.length)
+  if (!area || !fechaValida(fecha, hoy) || errores.hora)
     return (
-      <p className="panel">
-        No tienes unidades vinculadas. Solicita su asignación a la
-        administración.
-      </p>
+      <section className="panel max-w-3xl">
+        <h2 className="text-xl font-semibold">Primero elige un horario</h2>
+        <p className="mt-2 text-muted">
+          Consulta la disponibilidad y selecciona el bloque que quieras
+          reservar.
+        </p>
+        <Link href="/areas" className="button mt-5">
+          Consultar áreas
+        </Link>
+      </section>
     );
+  const fin = new Date(
+    new Date(`${fecha}T${hora}:00-06:00`).getTime() + duracion * 3600000,
+  );
+  const horaFin = new Intl.DateTimeFormat("es-SV", {
+    timeZone: "America/El_Salvador",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(fin);
   function confirmar(event: React.FormEvent) {
     event.preventDefault();
     if (Object.values(errores).some(Boolean)) return;
@@ -79,7 +88,6 @@ export function NuevaReserva({
     startTransition(async () => {
       const result = await crearReserva({
         areaId,
-        unidadId,
         inicio: new Date(`${fecha}T${hora}:00-06:00`).toISOString(),
         duracionHoras: duracion,
         asistentes,
@@ -89,74 +97,54 @@ export function NuevaReserva({
   }
   return (
     <form onSubmit={confirmar} className="panel max-w-3xl">
+      <section
+        aria-label="Selección de reserva"
+        className="reservation-summary mb-6"
+      >
+        <p className="text-sm font-medium text-muted">
+          Tu espacio seleccionado
+        </p>
+        <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+          {area.nombre}
+        </h2>
+        <p className="mt-1 text-sm text-muted">
+          Capacidad de hasta {area.capacidad} personas
+        </p>
+        <dl className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div>
+            <dt className="text-sm text-muted">Fecha</dt>
+            <dd className="mt-1 font-medium">
+              <time dateTime={fecha}>
+                {new Intl.DateTimeFormat("es-SV", {
+                  timeZone: "America/El_Salvador",
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                }).format(new Date(`${fecha}T12:00:00-06:00`))}
+              </time>
+            </dd>
+          </div>
+          <div>
+            <dt className="text-sm text-muted">Horario</dt>
+            <dd className="mt-1 font-medium">
+              <time dateTime={`${fecha}T${hora}:00-06:00`}>{hora}</time>
+              <span> – </span>
+              <time dateTime={fin.toISOString()}>{horaFin}</time>
+              <span className="ml-2 text-sm font-normal text-muted">
+                Hora de El Salvador
+              </span>
+            </dd>
+          </div>
+        </dl>
+        <Link
+          className="mt-5 inline-flex min-h-11 items-center text-sm font-medium text-accent underline underline-offset-4"
+          href={`/areas/${areaId}/disponibilidad?fecha=${fecha}`}
+        >
+          Elegir otro horario
+        </Link>
+      </section>
       <div className="grid gap-5 sm:grid-cols-2">
-        <label>
-          Área común
-          <select
-            aria-label="Área común"
-            className="field mt-1"
-            value={areaId}
-            onChange={(e) => setAreaId(e.target.value)}
-            required
-            aria-describedby="area-error"
-          >
-            <option value="">Seleccione un área</option>
-            {areas.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.nombre}
-              </option>
-            ))}
-          </select>
-          <span id="area-error" className="field-error block">
-            {errores.area}
-          </span>
-        </label>
-        <label>
-          Unidad habitacional
-          <select
-            aria-label="Unidad habitacional"
-            className="field mt-1"
-            value={unidadId}
-            onChange={(e) => setUnidadId(e.target.value)}
-            required
-          >
-            {unidades.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.codigo}
-              </option>
-            ))}
-          </select>
-          <span className="field-error block">{errores.unidad}</span>
-        </label>
-        <label>
-          Fecha
-          <input
-            aria-label="Fecha"
-            className="field mt-1"
-            type="date"
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
-            min={hoy}
-            max={limiteFecha(hoy)}
-            required
-          />
-          <span className="field-error block">{errores.fecha}</span>
-        </label>
-        <label>
-          Hora de inicio
-          <input
-            aria-label="Hora de inicio"
-            className="field mt-1"
-            type="time"
-            step={3600}
-            value={hora}
-            onChange={(e) => setHora(e.target.value)}
-            required
-          />
-          <span className="field-error block">
-            {errores.hora || errores.horario}
-          </span>
-        </label>
         <label>
           Duración
           <select
@@ -191,7 +179,7 @@ export function NuevaReserva({
         </label>
       </div>
       <p role="alert" className="field-error my-4">
-        {error}
+        {error || errores.horario}
       </p>
       <div className="flex flex-wrap gap-3">
         <button
@@ -200,12 +188,15 @@ export function NuevaReserva({
         >
           {pending ? "Confirmando…" : "Confirmar reserva"}
         </button>
-        <Link className="button-secondary" href="/areas">
-          Volver a áreas
+        <Link
+          className="button-secondary"
+          href={`/areas/${areaId}/disponibilidad?fecha=${fecha}`}
+        >
+          Volver a disponibilidad
         </Link>
       </div>
       <p className="mt-4 text-sm text-muted">
-        Cada unidad puede tener hasta 2 reservas confirmadas futuras.
+        Puedes tener hasta 2 reservas confirmadas futuras.
       </p>
     </form>
   );

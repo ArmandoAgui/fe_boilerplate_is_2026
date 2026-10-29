@@ -13,7 +13,6 @@ function fallo(error: unknown): Resultado {
 }
 export async function crearReserva(data: {
   areaId: string;
-  unidadId: string;
   inicio: string;
   duracionHoras: number;
   asistentes: number;

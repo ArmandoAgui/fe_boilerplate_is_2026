@@ -50,15 +50,13 @@ const reserva: Reserva = {
   id: "r",
   codigo: "RES-000001",
   areaId: "area",
-  unidadId: "u",
   areaNombre: area.nombre,
-  unidadCodigo: "A-101",
   inicio: "2099-01-02T18:00:00Z",
   fin: "2099-01-02T19:00:00Z",
   asistentes: 2,
   estado: "CONFIRMADA",
 };
-function formulario() {
+function formulario(inicialHora = "12:00") {
   const hoy = hoyLocal();
   const manana = new Date(Date.now() + 86400000 - 6 * 3600000)
     .toISOString()
@@ -76,7 +74,7 @@ function formulario() {
       <NuevaReserva
         areas={[area]}
         hoy={hoy}
-        inicial={{ areaId: "area", fecha: manana, hora: "12:00" }}
+        inicial={{ areaId: "area", fecha: manana, hora: inicialHora }}
       />
     </AuthProvider>,
   );
@@ -163,7 +161,6 @@ describe("H6 formulario", () => {
       expect(crearReserva).toHaveBeenCalledWith(
         expect.objectContaining({
           areaId: "area",
-          unidadId: "u",
           asistentes: 1,
           duracionHoras: 1,
           inicio: expect.stringMatching(/T18:00:00.000Z$/),
@@ -183,8 +180,15 @@ describe("H6 formulario", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Ese horario ya fue reservado. Elija otro.",
     );
-    expect(screen.getByLabelText("Hora de inicio")).toHaveValue("12:00");
-    expect(screen.getByLabelText("Área común")).toHaveValue("area");
+    expect(
+      screen.getByRole("region", { name: "Selección de reserva" }),
+    ).toHaveTextContent("12:00");
+    expect(
+      screen.getByRole("heading", { name: "Salón de eventos" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Área común")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Hora de inicio")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Fecha")).not.toBeInTheDocument();
   });
   it("valida capacidad y horario antes de confirmar", () => {
     formulario();
@@ -198,12 +202,25 @@ describe("H6 formulario", () => {
     fireEvent.change(screen.getByRole("spinbutton"), {
       target: { value: "1" },
     });
-    fireEvent.change(screen.getByLabelText("Hora de inicio"), {
-      target: { value: "23:00" },
-    });
-    expect(screen.getByText(/fuera del horario/)).toBeInTheDocument();
   });
-  it("muestra vacío cuando faltan unidades", () => {
+  it("rechaza una selección fuera del horario y permite volver a disponibilidad", () => {
+    formulario("23:00");
+    expect(screen.getByText(/fuera del horario/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Confirmar reserva" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("link", { name: "Elegir otro horario" }),
+    ).toHaveAttribute(
+      "href",
+      expect.stringContaining("/areas/area/disponibilidad?fecha="),
+    );
+  });
+  it("permite reservar sin unidades y no muestra selector de unidad", async () => {
+    const hoy = hoyLocal();
+    const manana = new Date(Date.now() + 86400000 - 6 * 3600000)
+      .toISOString()
+      .slice(0, 10);
     render(
       <AuthProvider
         usuario={{
@@ -214,12 +231,35 @@ describe("H6 formulario", () => {
         }}
         unidades={[]}
       >
-        <NuevaReserva areas={[area]} hoy="2099-01-01" inicial={{}} />
+        <NuevaReserva
+          areas={[area]}
+          hoy={hoy}
+          inicial={{ areaId: "area", fecha: manana, hora: "12:00" }}
+        />
       </AuthProvider>,
     );
     expect(
-      screen.getByText(/No tienes unidades vinculadas/),
-    ).toBeInTheDocument();
+      screen.queryByLabelText("Unidad habitacional"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Confirmar reserva" }),
+    ).toBeEnabled();
+    vi.mocked(crearReserva).mockResolvedValue({ ok: true });
+    await userEvent.click(
+      screen.getByRole("button", { name: "Confirmar reserva" }),
+    );
+    expect(crearReserva).toHaveBeenCalledWith(
+      expect.not.objectContaining({ unidadId: expect.anything() }),
+    );
+  });
+  it("sin selección invita a consultar disponibilidad", () => {
+    render(<NuevaReserva areas={[area]} hoy={hoyLocal()} inicial={{}} />);
+    expect(
+      screen.getByRole("link", { name: "Consultar áreas" }),
+    ).toHaveAttribute("href", "/areas");
+    expect(
+      screen.queryByRole("button", { name: "Confirmar reserva" }),
+    ).not.toBeInTheDocument();
   });
 });
 describe("H7 cancelación", () => {

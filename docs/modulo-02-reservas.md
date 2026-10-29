@@ -1,69 +1,74 @@
 # Módulo 2 frontend — H5–H8
 
-Responsable: Armando Antonio Aguilar Rosales. Equipo Sonnet 5. 29/10/2026.
+Responsable: Armando Antonio Aguilar Rosales. Sonnet 5. Actualizado 29/10/2026.
 
-## Fuentes, arquitectura e integración
+## Fuentes y cambio de alcance
 
-Se revisaron PDF de historias del 28/10/2026 (páginas visibles 3–7,15–20), código main `861ee56`, rama `origin/docs/analisis-inicial` (`a124bb1`), autenticación, integración, scripts y AGENTS.md. Se leyeron las guías incluidas en Next 16.3.6 para Server Actions, formularios, páginas, layout y error (`retry`, no `reset`). No se modifica la documentación de análisis.
+Se revisaron el PDF del 28/10/2026 (páginas 3–7,15–20), main inicial `861ee56`, docs/analisis-inicial (`a124bb1`), autenticación, integración y guías locales de Next 16.3.6. No se modifica la documentación de análisis.
 
-Se conserva App Router, React 19, Tailwind 4, login/Server Actions, cookie HttpOnly y diseño base. Se agrupan las rutas autenticadas en `app/(plataforma)` con un header compartido; no había sidebar previo. El layout raíz conserva fuentes y tema. No se usan imágenes ni marcas externas.
+**Decisión posterior explícita del usuario:** reservas personales, máximo dos confirmadas futuras por usuario, solo el creador consulta y cancela. Esta instrucción sustituye la regla por unidad del PDF; se registra en [D-M2-01 del backend](https://github.com/ArmandoAgui/be_boilerplate_is_2026/blob/feature/modulo-02-reservas/docs/decisiones/2026-10-29-reservas-personales.md). El formulario y las tarjetas ya no solicitan ni muestran unidades.
 
-La API de Nest continúa siendo la autoridad para roles, pertenencia y reglas. `lib/api.ts`, solo servidor, obtiene la cookie, envía Bearer, usa no-store/timeout y traduce errores. Las acciones de `app/actions/reservas.ts` nunca aceptan un token del cliente; los roles no se confían al formulario. Cada llamada llega al guard JWT existente. Un 401 redirige a `/login?expired=1`; proxy permite esa ruta incluso con cookie expirada, evitando el bucle de redirección del boilerplate.
+## Arquitectura y seguridad
 
-## Adaptación del estado global y sesión
+Se conserva App Router, React 19, Tailwind 4, login existente, Server Actions, cookie HttpOnly y JWT. `app/(plataforma)/layout.tsx` comparte cabecera/identidad sin segundo sidebar. El servidor consulta auth/me; reservas ya no necesita cargar unidades. AuthProvider conserva su contrato genérico para otros módulos, con lista vacía en este layout.
 
-El PDF propone Zustand con usuario/rol/token/unidades/contador de avisos. Se añade Zustand 5 para `useAuthStore` con usuario, rol y unidades, inicializado por request desde datos autenticados del servidor y provisto por contexto. El token se conserva exclusivamente en la cookie HttpOnly del boilerplate: no se copia a Zustand, localStorage ni al HTML. Esta adaptación conserva la autenticación existente conforme al encargo y reduce exposición de credenciales. Formularios y filtros viven en estado local. El contador de avisos pertenece a M9 y no se inventa en este módulo.
+`lib/api.ts` obtiene la sesión solo en servidor, envía Bearer y utiliza timeout/no-store. Las acciones `app/actions/reservas.ts` no aceptan tokens ni userId del cliente. La API determina propiedad, cupo y autorización. Un 401 redirige a /login?expired=1, permitido por proxy aun con cookie antigua. Sin permisos se muestra la pantalla del PDF. La renovación/logout remoto de M0 sigue fuera de este cambio.
 
-La renovación JWT y revocación remota de logout continúan pendientes de M0; no se introduce un segundo sistema de autenticación. Al expirar, se pide iniciar sesión nuevamente. El store se vuelve a inicializar al entrar con una nueva sesión; este módulo no ofrece edición en vivo de roles/unidades.
+Zustand mantiene usuario/rol/unidades de presentación, conforme a la adaptación documentada: token exclusivamente HttpOnly, sin copiarlo al HTML/localStorage/store. No se inventa contador de avisos de M9. Formularios y filtros viven en estado local.
 
-## Páginas y componentes
+## Vistas y flujo vigente
 
 | Ruta | Rol | Comportamiento |
 |---|---|---|
-| / | Autenticado | Inicio y enlaces por rol |
-| /areas | Residente, Administrador | Catálogo de áreas activas, nombre/capacidad, estado vacío |
-| /areas/[id]/disponibilidad | Residente, Administrador | Selector fecha hoy–hoy+30, 24 bloques, leyenda por texto/símbolo/color, precarga a nueva reserva solo para residente |
-| /reservas/nueva | Residente | Área, unidad vinculada, fecha/hora, duración 1–4 y asistentes; validación inmediata, pending, errores |
-| /reservas | Residente | Lista paginada de reservas de unidades vinculadas, confirmación con código/datos, cancelar mediante diálogo modal |
-| /admin/areas | Administrador | Tabla completa incluidas inactivas; crear/editar capacidad/estado y varias franjas por día; copiar semana; mensajes bajo campos |
+| / | Autenticado | Inicio y navegación por rol |
+| /areas | Residente, Administrador | Catálogo de áreas activas y capacidad |
+| /areas/[id]/disponibilidad | Residente, Administrador | Fecha hoy–hoy+30 y bloques con texto/símbolo/color; enlaces a reservar solo para residente |
+| /reservas/nueva | Residente | Sin selección redirige a áreas. Con selección, resumen fijo de área/fecha/inicio, duración y asistentes editables |
+| /reservas | Residente | Solo reservas del creador, paginación, confirmación y cancelación modal |
+| /admin/areas | Administrador | Tabla incluidas inactivas y editor de franjas múltiples por día |
 
-`components/reservas/ui.tsx` aporta Titulo, Catalogo, Navegacion y SinPermiso. Componentes específicos: Disponibilidad, NuevaReserva, MisReservas y AdminAreas. `components/auth-provider.tsx` comparte identidad de presentación. `lib/reservas.ts` concentra tipos, zona/fechas, formato, plazo de cancelación y validación de horarios. No se duplica un layout por pantalla.
+El residente elige área y bloque en disponibilidad. La confirmación muestra un resumen, no inputs deshabilitados: nombre/capacidad, fecha larga local e intervalo (fin recalculado por duración). No permite cambiar área, fecha o inicio desde esa pantalla. “Elegir otro horario” regresa a la disponibilidad del área y fecha elegidas; desde allí se pueden consultar otras áreas. Si los parámetros son incompletos/incorrectos, no se puede enviar una reserva. El backend sigue validando cualquier dato manipulado o un horario que dejó de estar disponible.
 
-`loading.tsx` presenta Cargando… y skeleton; los error boundaries muestran el mensaje del PDF y botón Reintentar. Hay estado vacío para catálogo, día sin horario, sin unidades, sin reservas y sin áreas administrativas. Página SinPermiso con Ir al inicio. `not-found.tsx` para área inexistente/inactiva. Responsive probado a 1280 y 390 píxeles; editor apilable y tabla desplazable. Controles etiquetados, foco visible, leyenda textual, modal HTML con Escape/foco y mensajes aria-live/role alert. El botón Cancelar se recalcula cada 30 segundos para ocultarse al acercarse al plazo; el servidor valida de nuevo.
+El formulario pide solo duración (1–4 horas) y asistentes (1–capacidad). Muestra error bajo campo y error de servidor accesible. Con 409 conserva los valores y el resumen. Al confirmar redirige a Mis reservas con código y estado. Las tarjetas muestran área/fecha/horario/asistentes/estado; no unidad. Cancelar exige confirmación, actualiza tarjeta, anuncia Reserva cancelada y revalida disponibilidad/lista. El botón se recalcula cada 30s y solo se muestra a más de 2h del inicio; la API permite exactamente 2h como indica H7.
 
-## Contratos consumidos
+`components/reservas/ui.tsx`: Titulo/Catalogo/Navegacion/SinPermiso. Componentes específicos: Disponibilidad, NuevaReserva, MisReservas, AdminAreas. `lib/reservas.ts` agrupa tipos y utilidades. Loading con skeleton, error boundaries con Reintentar, vacío de catálogo/reservas/áreas y not-found de área inexistente/inactiva. Responsive, controles etiquetados, foco visible y modal nativo accesible. No se incluyen imágenes externas.
 
-Base `API_URL` incluye `/api/v1`, nunca es NEXT_PUBLIC. Se usan `GET auth/me`, `GET unidades/mias`, `GET areas`, `GET areas/:id/disponibilidad?fecha=...`, `POST reservas`, `GET reservas/mias?pagina=...&tamanoPagina=20`, `PATCH reservas/:id/cancelacion`, `POST areas` y `PATCH areas/:id`.
+## Apariencia
 
-Crear reserva transforma la fecha/hora local America/El_Salvador (UTC−6, sin cambios estacionales) a ISO UTC:
+ThemePicker en login y cabecera: Claro, Oscuro, Sistema. La elección se guarda un año en cookie de presentación; el layout la lee para renderizar el tema correcto desde servidor, sin destello. Sistema sigue cambios del dispositivo mediante CSS. `components/theme-provider.tsx` no añade dependencias.
+
+Claro: marfil suave/salvia. **Oscuro: gris grafito**, superficies neutras y acentos azul grisáceo; se eliminó el fondo verde a petición del usuario. Los tokens semánticos de globals.css cubren texto principal/secundario, superficies, bordes, controles, disponibilidad, badges y errores. Controles de al menos 44px, color-scheme para campos nativos, fuente Geist existente y skeleton respetando movimiento reducido. Se comprobó contraste ≥4.5:1 para pares principales de texto, estados, botones y errores en ambos modos; no se declara una auditoría integral de accesibilidad.
+
+## Contratos
+
+API_URL incluye /api/v1 y es solo servidor. Endpoints consumidos: auth/me, areas, areas/:id/disponibilidad, POST reservas, GET reservas/mias, PATCH reservas/:id/cancelacion y POST/PATCH areas. Ya no se envía unidadId.
+
 ```json
-{"areaId":"11111111-1111-4111-8111-111111111111","unidadId":"22222222-2222-4222-8222-222222222222","inicio":"2026-10-30T18:00:00.000Z","duracionHoras":2,"asistentes":4}
+{"areaId":"11111111-1111-4111-8111-111111111111","inicio":"2026-10-30T18:00:00.000Z","duracionHoras":2,"asistentes":4}
 ```
-Crear/editar área:
+
 ```json
 {"nombre":"Salón de eventos","capacidad":40,"activa":true,"horarios":[{"diaSemana":1,"horaInicio":"06:00","horaFin":"22:00"}]}
 ```
-El error `{statusCode:409,error:"Conflict",message:"Ese horario ya fue reservado. Elija otro."}` se presenta sin borrar valores del formulario. Otros 409 (máximo de dos, nombre duplicado o cancelación fuera de plazo) conservan el mensaje del servidor. Después de reservar se navega a Mis reservas con banner Reserva confirmada y datos completos en tarjeta. Cancelación muestra Reserva cancelada, actualiza la tarjeta y refresca datos; revalidatePath/no-store evita conservar disponibilidad cancelada.
+
+Fechas/hora seleccionadas se transforman de America/El_Salvador a ISO UTC. No se considera la zona del navegador para negocio. El servidor completa userId/código. Mis reservas recibe `{datos,total,pagina,tamanoPagina}` y ordena por inicio.
 
 ## Ejecución
 
-Requiere backend del PR `ArmandoAgui/be_boilerplate_is_2026`, rama `feature/modulo-02-reservas`, con migraciones y seed aplicados. El frontend no incluye migraciones.
+Requiere el backend complementario con **ambas migraciones del módulo**, incluida `20261029160000_reservas_personales`. Nuevas reservas no requieren unidad. No desplegar este frontend con el contrato antiguo.
 
 ```bash
-# Node 24 actualizado / npm 11 recomendados
 npm ci
 cp .env.example .env.local
 # API_URL=http://localhost:3000/api/v1
 npm run dev -- --port 3001
 ```
 
-Seed del backend: `admin@condominio.test`, `seguridad@condominio.test`, `residente1` a `residente5@condominio.test`, contraseña exclusivamente de pruebas `Prueba123!`. residente1 tiene A-101/A-102; residente2 comparte A-101. Las cuatro áreas iniciales están abiertas 06:00–22:00 toda la semana.
+Node 24 actualizado/npm 11. Seed backend del PDF: admin/seguridad/residente1–residente5 @condominio.test, contraseña exclusivamente de pruebas Prueba123!. Residente1 y residente2 comparten unidad base, pero sus reservas ahora son privadas e independientes. Cuatro áreas iniciales 06:00–22:00 toda la semana.
 
-Verificación manual: entrar como admin y crear/editar área; entrar como residente y elegir un bloque futuro, confirmar y revisar código/unidad, cancelar y comprobar que el bloque se libera. Seguridad ve Sin permiso al abrir rutas del módulo. Una segunda sesión que ocupe el bloque antes de confirmar provoca 409 y conserva formulario.
+## Pruebas y capturas
 
-## Pruebas y dependencias añadidas
-
-Zustand satisface el estado de identidad del PDF. No había framework de pruebas frontend: se añadieron Vitest 4 (misma familia que backend), Testing Library, user-event, jest-dom y jsdom como dependencias de desarrollo para verificar comportamiento de controles. Playwright, también de desarrollo, verifica el flujo real con Next, Nest y PostgreSQL. No se añaden bibliotecas visuales ni de calendario.
+Vitest 4 + Testing Library/jsdom/user-event/jest-dom para comportamiento; Playwright para navegador real. Zustand es la única dependencia de runtime añadida al boilerplate. Sin biblioteca visual/calendario adicional.
 
 ```bash
 npm run lint
@@ -71,41 +76,18 @@ npm run typecheck
 npm test
 npm run build
 npx playwright install chromium
-# Iniciar backend en 3100 con PostgreSQL aislado migrado y seed.
-API_URL=http://localhost:3100/api/v1 npm run dev -- --port 3101
-E2E_BASE_URL=http://localhost:3101 E2E_API_URL=http://localhost:3100/api/v1 npm run test:e2e
+# Arrancar API/Next de prueba con BD aislada migrada y seed
+E2E_BASE_URL=http://localhost:3103 E2E_API_URL=http://localhost:3102/api/v1 npm run test:e2e
 ```
 
-Resultados locales: 21 pruebas Vitest aprobadas: catálogo, enlaces/bloques, fecha, carga/vacío/error/reintento, validaciones, reserva UTC, 409 conservando valores, diálogo/cancelación/error de plazo, creación/edición/solapamientos y navegación por rol. Tres escenarios Playwright aprobados: recorrido completo en escritorio, mismo recorrido móvil, y sesión/permisos/JWT inválido. Ambos recorridos crean un área con UI, reservan con datos precargados, cancelan, comprueban liberación y provocan un 409 real con una reserva desde la API antes de confirmar el formulario. Los errores iniciales de selectores/tipos de tests se corrigieron; la corrida final pasa.
+Resultados actuales: **23 pruebas de componentes** (incluyen resumen fijo, usuario sin unidad, selección incompleta, 409 conservando resumen, validación y cancelación). Cinco escenarios de navegador: flujos completos escritorio/móvil con confirmación sin campos editables de área/fecha/inicio/unidad y conflicto real generado por otro usuario; roles/sesión; persistencia/SSR/contraste de temas; Sistema/teclado/móvil. El backend tiene 40 unitarias y 13 HTTP/PostgreSQL con las nuevas reglas personales y concurrencia real. Las comprobaciones finales se reportan en los PR.
 
-Las capturas en `docs/screenshots/` se generan con datos de prueba. Playwright requiere servidor frontend y backend activos; nunca se ejecuta contra producción. Al terminar desactiva solo el área que creó y cancela su reserva de conflicto, conservando el historial. El backend añade otras 40 unitarias y 12 pruebas HTTP/PostgreSQL, incluyendo concurrencia real. No se declara cobertura exhaustiva ni prueba de carga.
+CI frontend verifica instalación/lint/typecheck/unitarias/build. Navegador entre repositorios se ejecuta localmente con el backend complementario; no está simulado con mocks. Los escenarios de flujo generan áreas propias y las desactivan al finalizar, sin tocar datos del usuario. No usar producción.
 
-CI `.github/workflows/reservas.yml`: instalación, lint, typecheck, unitarias y build. Las pruebas integradas entre repositorios se ejecutaron localmente; no están en CI frontend porque requieren la rama backend complementaria sin fusionar.
+[Confirmación escritorio](screenshots/confirmacion-escritorio.png) · [Confirmación móvil](screenshots/confirmacion-movil.png) · [Claro](screenshots/tema-claro.png) · [Oscuro grafito](screenshots/tema-oscuro.png) · [Confirmación grafito](screenshots/confirmacion-grafito.png) · [Administración](screenshots/admin-areas.png).
 
-## Capturas
+## Revisión y límites
 
-- [Administración](screenshots/admin-areas.png)
-- [Disponibilidad escritorio](screenshots/disponibilidad-escritorio.png)
-- [Disponibilidad móvil](screenshots/disponibilidad-movil.png)
-- [Confirmación escritorio](screenshots/reserva-escritorio.png)
-- [Confirmación móvil](screenshots/reserva-movil.png)
+Comunicar el cambio aprobado respecto al PDF al equipo/cátedra y coordinar el despliegue de ambos PR. Los datos previos conservan creador y unidad histórica en BD; esa unidad ya no otorga acceso. No se cancelan reservas anteriores automáticamente ni se reasignan.
 
-## Pendientes y decisiones para el equipo
-
-- Integrar los dos PR juntos y coordinar la base compartida de roles/unidades con M0/M1. No sustituir tablas existentes al integrar otras ramas.
-- Mantener el JWT HttpOnly en vez de exponerlo en Zustand es una adaptación técnica documentada. No implementa contador de avisos M9.
-- El PDF muestra Cancelar solo con más de 2h, mientras la API permite exactamente 2h: se respetan ambos textos. La interfaz se actualiza cada 30s; el backend decide el instante real.
-- Desactivar impide nuevas reservas, conserva las confirmadas y permite consultarlas/cancelarlas por unidad; el área inactiva no tiene disponibilidad consultable.
-- `npm audit` informa avisos heredados: Next 16.3.6 crítico y zod transitivo alto. La actualización amplia del framework debe revisarse antes de un despliegue público; este PR conserva las versiones base. No se afirma ausencia de vulnerabilidades ajenas al módulo.
-- GitHub devolvió 403 al consultar protección de main con la integración; no se alteraron reglas. El usuario pidió asignar revisores posteriormente: los PR se dejan sin solicitudes de revisión automáticas y nunca se fusionan.
-
-
-## Apariencia: claro, oscuro y sistema
-
-El selector **Apariencia** está en login y en la barra de la plataforma. Permite Claro, Oscuro y Sistema; Sistema sigue los cambios de preferencia del dispositivo mediante CSS. Se guarda la elección un año en una cookie de presentación, independiente de la sesión. El layout lee esa cookie y renderiza el tema desde el servidor para evitar mostrar un tema incorrecto durante la carga. No se añaden dependencias.
-
-`components/theme-provider.tsx` concentra estado/selector; `app/globals.css` define tokens semánticos para fondo, superficie, texto secundario, bordes, controles, acciones, errores y disponibilidad. Se usan marfil suave y salvia en claro, verde grisáceo en oscuro. Se eliminan fondos blanco/negro puros y colores fijos por pantalla. Los controles nativos también siguen color-scheme. Se usa la fuente Geist existente, controles de al menos 44px, foco de teclado explícito y reducción de movimiento para el skeleton.
-
-Verificación de esta mejora: 21 pruebas de componentes pasan; dos escenarios nuevos `e2e/tema.spec.ts` comprueban elección, persistencia al recargar/navegar/cerrar sesión, tema SSR, preferencia del sistema en vivo, teclado y ausencia de desbordamiento móvil. Se comprueba contraste de texto de al menos 4.5:1 para los pares principales, texto secundario, botones, estados y errores en ambos temas; esto no equivale a una auditoría integral de accesibilidad. Lint, typecheck y build pasan.
-
-Capturas actualizadas: [Tema claro](screenshots/tema-claro.png) y [Tema oscuro](screenshots/tema-oscuro.png).
+Persisten avisos heredados de npm audit (Next y zod transitivo) y renovación/logout de M0; no se afirma que el boilerplate esté libre de vulnerabilidades. GitHub negó lectura de protección de main con 403, sin cambios de reglas. Revisores pendientes de asignación manual, según instrucción del usuario. No se realizan merges ni cambios directos a main/originales.

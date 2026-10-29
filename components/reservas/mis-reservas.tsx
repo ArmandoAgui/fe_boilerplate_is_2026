@@ -85,10 +85,6 @@ export function MisReservas({
                     </dd>
                   </div>
                   <div>
-                    <dt className="inline text-muted">Unidad: </dt>
-                    <dd className="inline">{r.unidadCodigo}</dd>
-                  </div>
-                  <div>
                     <dt className="inline text-muted">Asistentes: </dt>
                     <dd className="inline">{r.asistentes}</dd>
                   </div>

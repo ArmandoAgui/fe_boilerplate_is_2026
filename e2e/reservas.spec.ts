@@ -71,8 +71,25 @@ for (const mobile of [false, true]) {
         .getByRole("link", { name: "Reservar 12:00, disponible" })
         .click();
       await expect(
-        page.getByLabel("Hora de inicio", { exact: true }),
-      ).toHaveValue("12:00");
+        page.getByRole("region", { name: "Selección de reserva" }),
+      ).toContainText("12:00");
+      await expect(page.getByLabel("Área común", { exact: true })).toHaveCount(
+        0,
+      );
+      await expect(
+        page.getByLabel("Unidad habitacional", { exact: true }),
+      ).toHaveCount(0);
+      await expect(
+        page.locator('input[type="date"], input[type="time"]'),
+      ).toHaveCount(0);
+      await page.getByRole("combobox", { name: "Duración", exact: true }).selectOption("2");
+      await expect(
+        page.getByRole("region", { name: "Selección de reserva" }),
+      ).toContainText("14:00");
+      await page.screenshot({
+        path: `docs/screenshots/confirmacion-${mobile ? "movil" : "escritorio"}.png`,
+        fullPage: true,
+      });
       await page.getByLabel("Asistentes", { exact: true }).fill("3");
       await page.getByRole("button", { name: "Confirmar reserva" }).click();
       await expect(page).toHaveURL(/\/reservas\?confirmada=RES-/);
@@ -80,7 +97,7 @@ for (const mobile of [false, true]) {
       const card = page
         .getByRole("article")
         .filter({ has: page.getByRole("heading", { name: nombre }) });
-      await expect(card).toContainText("A-101");
+      await expect(card).not.toContainText("Unidad:");
       await expect(card).toContainText("Confirmada");
       await page.screenshot({
         path: `docs/screenshots/reserva-${mobile ? "movil" : "escritorio"}.png`,
@@ -109,18 +126,13 @@ for (const mobile of [false, true]) {
         .getByRole("link", { name: "Reservar 12:00, disponible" })
         .click();
       const auth = await request.post(`${api}/auth/login`, {
-        data: { email: "residente1@condominio.test", password: "Prueba123!" },
+        data: { email: "residente2@condominio.test", password: "Prueba123!" },
       });
       token = (await auth.json()).accessToken;
-      const units = await request.get(`${api}/unidades/mias`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const unidadId = (await units.json()).datos[0].id;
       const choque = await request.post(`${api}/reservas`, {
         headers: { Authorization: `Bearer ${token}` },
         data: {
           areaId,
-          unidadId,
           inicio: `${fecha}T12:00:00-06:00`,
           duracionHoras: 1,
           asistentes: 1,
@@ -133,8 +145,8 @@ for (const mobile of [false, true]) {
         "Ese horario ya fue reservado. Elija otro.",
       );
       await expect(
-        page.getByLabel("Hora de inicio", { exact: true }),
-      ).toHaveValue("12:00");
+        page.getByRole("region", { name: "Selección de reserva" }),
+      ).toContainText("12:00");
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= window.innerWidth,

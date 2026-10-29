@@ -67,10 +67,11 @@ test("el tema elegido persiste al recargar, navegar y cerrar sesión; contraste 
     await expect(picker).toHaveValue("dark");
     await expect(page.locator("body")).toHaveCSS(
       "background-color",
-      "rgb(24, 35, 30)",
+      "rgb(30, 32, 36)",
     );
   }
   await page.getByRole("button", { name: "Cerrar sesión" }).click();
+  await expect(page).toHaveURL(/\/login$/);
   await expect(picker).toHaveValue("dark");
   await login(page, "admin@condominio.test");
   await page.goto("/admin/areas");
@@ -90,7 +91,7 @@ test("Sistema sigue la preferencia del dispositivo; selector usable con teclado 
   await expect(picker).toHaveValue("system");
   await expect(page.locator("body")).toHaveCSS(
     "background-color",
-    "rgb(24, 35, 30)",
+    "rgb(30, 32, 36)",
   );
   await page.emulateMedia({ colorScheme: "light" });
   await expect(page.locator("body")).toHaveCSS(

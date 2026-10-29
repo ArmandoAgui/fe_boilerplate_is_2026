@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Superficies cálidas y verde salvia: tokens compartidos por todas las vistas. */
+/* Claro cálido y oscuro grafito: superficies neutras con acentos de estado. */
 :root {
   --background: #f1f3ed;
   --foreground: #23382d;
@@ -23,46 +23,46 @@
   color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --background: #18231e;
-  --foreground: #e0e9dd;
-  --surface: #213027;
-  --surface-alt: #2c3c31;
-  --muted: #b1c3b4;
-  --line: #536f5b;
-  --control-line: #6b8a71;
-  --accent: #a3d2af;
-  --accent-hover: #b6dfbf;
-  --accent-contrast: #1c3425;
-  --success-soft: #2b4433;
-  --success-text: #b8e0bd;
-  --success-line: #769f7f;
-  --occupied: #35483a;
-  --occupied-text: #c8d7c9;
+  --background: #1e2024;
+  --foreground: #e5e7eb;
+  --surface: #282b30;
+  --surface-alt: #32363c;
+  --muted: #bfc3ca;
+  --line: #555d69;
+  --control-line: #7b8593;
+  --accent: #bacbe1;
+  --accent-hover: #d0dcec;
+  --accent-contrast: #232c38;
+  --success-soft: #2c3b4b;
+  --success-text: #c5def5;
+  --success-line: #7f9ebd;
+  --occupied: #373c44;
+  --occupied-text: #d1d7e0;
   --danger: #ffb0af;
-  --focus: #b5ddab;
-  --shadow: 0 3px 16px rgb(7 22 13 / 14%);
+  --focus: #c3d7ee;
+  --shadow: 0 3px 16px rgb(10 12 16 / 18%);
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root[data-theme="system"] {
-    --background: #18231e;
-    --foreground: #e0e9dd;
-    --surface: #213027;
-    --surface-alt: #2c3c31;
-    --muted: #b1c3b4;
-    --line: #536f5b;
-    --control-line: #6b8a71;
-    --accent: #a3d2af;
-    --accent-hover: #b6dfbf;
-    --accent-contrast: #1c3425;
-    --success-soft: #2b4433;
-    --success-text: #b8e0bd;
-    --success-line: #769f7f;
-    --occupied: #35483a;
-    --occupied-text: #c8d7c9;
+    --background: #1e2024;
+    --foreground: #e5e7eb;
+    --surface: #282b30;
+    --surface-alt: #32363c;
+    --muted: #bfc3ca;
+    --line: #555d69;
+    --control-line: #7b8593;
+    --accent: #bacbe1;
+    --accent-hover: #d0dcec;
+    --accent-contrast: #232c38;
+    --success-soft: #2c3b4b;
+    --success-text: #c5def5;
+    --success-line: #7f9ebd;
+    --occupied: #373c44;
+    --occupied-text: #d1d7e0;
     --danger: #ffb0af;
-    --focus: #b5ddab;
-    --shadow: 0 3px 16px rgb(7 22 13 / 14%);
+    --focus: #c3d7ee;
+    --shadow: 0 3px 16px rgb(10 12 16 / 18%);
     color-scheme: dark;
   }
 }
@@ -208,5 +208,14 @@ nav a:hover {
 @media (prefers-reduced-motion: reduce) {
   .animate-pulse {
     animation: none;
+  }
+}
+
+@layer components {
+  .reservation-summary {
+    @apply rounded-xl border border-line bg-surface-alt p-5;
+  }
+  .reservation-summary time {
+    font-variant-numeric: tabular-nums;
   }
 }

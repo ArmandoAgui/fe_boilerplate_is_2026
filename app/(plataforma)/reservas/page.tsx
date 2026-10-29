@@ -25,7 +25,7 @@ export default async function Page({
     <>
       <Titulo
         titulo="Mis reservas"
-        detalle="Reservas de tus unidades, ordenadas por fecha de inicio. Puedes cancelar hasta dos horas antes."
+        detalle="Tus reservas personales, ordenadas por fecha de inicio. Puedes cancelar hasta dos horas antes."
       />
       <MisReservas lista={lista} confirmada={query.confirmada} />
     </>

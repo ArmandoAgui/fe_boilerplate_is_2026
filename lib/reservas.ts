@@ -27,9 +27,7 @@ export type Reserva = {
   id: string;
   codigo: string;
   areaId: string;
-  unidadId: string;
   areaNombre: string;
-  unidadCodigo: string;
   inicio: string;
   fin: string;
   asistentes: number;

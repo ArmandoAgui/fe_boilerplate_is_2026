@@ -2,6 +2,10 @@
 
 ## Creados
 
+- `docs/screenshots/confirmacion-escritorio.png`
+- `docs/screenshots/confirmacion-movil.png`
+- `docs/screenshots/confirmacion-grafito.png`
+
 - `components/theme-provider.tsx`
 - `e2e/tema.spec.ts`
 - `docs/screenshots/tema-claro.png`

@@ -1,21 +1,16 @@
 import { ThemePicker } from "@/components/theme-provider";
-import { api, usuarioActual } from "@/lib/api";
+import { usuarioActual } from "@/lib/api";
 import { logout } from "@/app/actions/auth";
 import { AuthProvider } from "@/components/auth-provider";
 import { Navegacion } from "@/components/reservas/ui";
-import type { Unidad } from "@/lib/reservas";
 export default async function PlataformaLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const usuario = await usuarioActual();
-  const unidades =
-    usuario.rol === "RESIDENTE"
-      ? (await api<{ datos: Unidad[] }>("unidades/mias")).datos
-      : [];
   return (
-    <AuthProvider usuario={usuario} unidades={unidades}>
+    <AuthProvider usuario={usuario} unidades={[]}>
       <header className="site-header">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5 px-5 py-5">
           <div>
