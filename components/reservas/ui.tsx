@@ -52,8 +52,14 @@ export function Navegacion({ rol }: { rol: Rol }) {
     >
       <Link href="/">Inicio</Link>
 
-      {rol !== "SEGURIDAD" && (
-        <Link href="/areas">Áreas comunes</Link>
+      
+      {rol !== "SEGURIDAD" && <Link href="/areas">Áreas comunes</Link>}
+      {rol === "RESIDENTE" && (
+        <>
+          <Link href="/reservas">Mis reservas</Link>
+          <Link href="/reservas/nueva">Nueva reserva</Link>
+          <Link href="/visitas">Mis visitantes</Link>
+        </>
       )}
 
      {rol === "RESIDENTE" && (
