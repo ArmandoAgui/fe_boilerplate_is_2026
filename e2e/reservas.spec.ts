@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { test, expect, type Page } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 const api = process.env.E2E_API_URL ?? "http://localhost:3100/api/v1";
-const fecha = new Date(Date.now() + 86400000 - 6 * 3600000)
+const fecha = new Date(Date.now() + 2 * 86400000 - 6 * 3600000)
   .toISOString()
   .slice(0, 10);
 async function login(page: Page, email: string) {
@@ -82,7 +82,9 @@ for (const mobile of [false, true]) {
       await expect(
         page.locator('input[type="date"], input[type="time"]'),
       ).toHaveCount(0);
-      await page.getByRole("combobox", { name: "Duración", exact: true }).selectOption("2");
+      await page
+        .getByRole("combobox", { name: "Duración", exact: true })
+        .selectOption("2");
       await expect(
         page.getByRole("region", { name: "Selección de reserva" }),
       ).toContainText("14:00");

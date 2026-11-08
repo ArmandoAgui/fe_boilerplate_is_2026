@@ -29,7 +29,7 @@ Zustand mantiene usuario/rol/unidades de presentación, conforme a la adaptació
 
 El residente elige área y bloque en disponibilidad. La confirmación muestra un resumen, no inputs deshabilitados: nombre/capacidad, fecha larga local e intervalo (fin recalculado por duración). No permite cambiar área, fecha o inicio desde esa pantalla. “Elegir otro horario” regresa a la disponibilidad del área y fecha elegidas; desde allí se pueden consultar otras áreas. Si los parámetros son incompletos/incorrectos, no se puede enviar una reserva. El backend sigue validando cualquier dato manipulado o un horario que dejó de estar disponible.
 
-El formulario pide solo duración (1–4 horas) y asistentes (1–capacidad). Muestra error bajo campo y error de servidor accesible. Con 409 conserva los valores y el resumen. Al confirmar redirige a Mis reservas con código y estado. Las tarjetas muestran área/fecha/horario/asistentes/estado; no unidad. Cancelar exige confirmación, actualiza tarjeta, anuncia Reserva cancelada y revalida disponibilidad/lista. El botón se recalcula cada 30s y solo se muestra a más de 2h del inicio; la API permite exactamente 2h como indica H7.
+El formulario pide solo duración (1–4 horas) y asistentes (1–capacidad). Muestra error bajo campo y error de servidor accesible. Con 409 conserva los valores y el resumen. Al confirmar redirige a Mis reservas con código y estado. Las tarjetas muestran área/fecha/horario/asistentes/estado; no unidad. Cancelar exige confirmación, actualiza tarjeta, anuncia Reserva cancelada y revalida disponibilidad/lista. El botón se recalcula cada 30s y se muestra cuando faltan al menos 24 horas, incluido el corte exacto, igual que la API (aclaración del instructor del 07/11/2026).
 
 `components/reservas/ui.tsx`: Titulo/Catalogo/Navegacion/SinPermiso. Componentes específicos: Disponibilidad, NuevaReserva, MisReservas, AdminAreas. `lib/reservas.ts` agrupa tipos y utilidades. Loading con skeleton, error boundaries con Reintentar, vacío de catálogo/reservas/áreas y not-found de área inexistente/inactiva. Responsive, controles etiquetados, foco visible y modal nativo accesible. No se incluyen imágenes externas.
 
@@ -80,7 +80,7 @@ npx playwright install chromium
 E2E_BASE_URL=http://localhost:3103 E2E_API_URL=http://localhost:3102/api/v1 npm run test:e2e
 ```
 
-Resultados actuales: **23 pruebas de componentes** (incluyen resumen fijo, usuario sin unidad, selección incompleta, 409 conservando resumen, validación y cancelación). Cinco escenarios de navegador: flujos completos escritorio/móvil con confirmación sin campos editables de área/fecha/inicio/unidad y conflicto real generado por otro usuario; roles/sesión; persistencia/SSR/contraste de temas; Sistema/teclado/móvil. El backend tiene 40 unitarias y 13 HTTP/PostgreSQL con las nuevas reglas personales y concurrencia real. Las comprobaciones finales se reportan en los PR.
+Resultados actuales: **24 pruebas de componentes** (incluyen resumen fijo, usuario sin unidad, selección incompleta, 409 conservando resumen, validación y cancelación). Cinco escenarios de navegador: flujos completos escritorio/móvil con confirmación sin campos editables de área/fecha/inicio/unidad y conflicto real generado por otro usuario; roles/sesión; persistencia/SSR/contraste de temas; Sistema/teclado/móvil. El backend tiene 40 unitarias y 14 HTTP/PostgreSQL con las nuevas reglas personales y concurrencia real. Las comprobaciones finales se reportan en los PR.
 
 CI frontend verifica instalación/lint/typecheck/unitarias/build. Navegador entre repositorios se ejecuta localmente con el backend complementario; no está simulado con mocks. Los escenarios de flujo generan áreas propias y las desactivan al finalizar, sin tocar datos del usuario. No usar producción.
 
@@ -91,3 +91,6 @@ CI frontend verifica instalación/lint/typecheck/unitarias/build. Navegador entr
 Comunicar el cambio aprobado respecto al PDF al equipo/cátedra y coordinar el despliegue de ambos PR. Los datos previos conservan creador y unidad histórica en BD; esa unidad ya no otorga acceso. No se cancelan reservas anteriores automáticamente ni se reasignan.
 
 Persisten avisos heredados de npm audit (Next y zod transitivo) y renovación/logout de M0; no se afirma que el boilerplate esté libre de vulnerabilidades. GitHub negó lectura de protección de main con 403, sin cambios de reglas. Revisores pendientes de asignación manual, según instrucción del usuario. No se realizan merges ni cambios directos a main/originales.
+
+
+Aclaración del instructor y pendientes de aprobación/deuda: [D-M2-02 — Cancelación 24h](decisiones/2026-11-07-cancelacion-24h.md).

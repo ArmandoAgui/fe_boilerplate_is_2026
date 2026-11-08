@@ -66,10 +66,12 @@ export function fechaValida(fecha: string, hoy: string) {
     fecha <= limiteFecha(hoy)
   );
 }
+export const ANTICIPACION_CANCELACION_MS = 24 * 60 * 60 * 1000;
+
 export function puedeCancelar(reserva: Reserva, ahora = Date.now()) {
   return (
     reserva.estado === "CONFIRMADA" &&
-    new Date(reserva.inicio).getTime() - ahora > 7200000
+    new Date(reserva.inicio).getTime() - ahora >= ANTICIPACION_CANCELACION_MS
   );
 }
 export function fechaHora(iso: string) {

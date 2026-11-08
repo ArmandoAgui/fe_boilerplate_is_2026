@@ -301,6 +301,21 @@ describe("H7 cancelación", () => {
       screen.queryByRole("button", { name: "Cancelar" }),
     ).not.toBeInTheDocument();
   });
+  it("oculta Cancelar en reservas confirmadas dentro de las próximas 24h", () => {
+    const proxima = {
+      ...reserva,
+      inicio: new Date(Date.now() + 12 * 3_600_000).toISOString(),
+    };
+    render(
+      <MisReservas
+        lista={{ datos: [proxima], total: 1, pagina: 1, tamanoPagina: 20 }}
+      />,
+    );
+    expect(screen.getByText("Confirmada")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Cancelar" }),
+    ).not.toBeInTheDocument();
+  });
   it("muestra vacío", () => {
     render(
       <MisReservas
@@ -312,7 +327,7 @@ describe("H7 cancelación", () => {
   it("muestra error de plazo sin cambiar estado", async () => {
     vi.mocked(cancelarReserva).mockResolvedValue({
       status: 409,
-      error: "Solo se puede cancelar con 2 horas de anticipación",
+      error: "Solo se puede cancelar con al menos 24 horas de anticipación",
     });
     render(
       <MisReservas
@@ -324,7 +339,7 @@ describe("H7 cancelación", () => {
       screen.getByRole("button", { name: "Cancelar reserva" }),
     );
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(/2 horas/),
+      expect(screen.getByRole("alert")).toHaveTextContent(/24 horas/),
     );
     expect(screen.getByText("Confirmada")).toBeInTheDocument();
   });
@@ -395,10 +410,15 @@ describe("permisos y fechas", () => {
     expect(fechaValida("2099-02-30", "2099-02-01")).toBe(false);
     expect(fechaValida("2098-12-31", "2099-01-01")).toBe(false);
   });
-  it("botón de cancelación exige más de 2 horas", () => {
+  it("el botón permite 24h exactas o más y rechaza menos de 24h", () => {
     const inicio = new Date(reserva.inicio).getTime();
-    expect(puedeCancelar(reserva, inicio - 7200000)).toBe(false);
-    expect(puedeCancelar(reserva, inicio - 7200001)).toBe(true);
+    expect(puedeCancelar(reserva, inicio - 86_400_001)).toBe(true);
+    expect(puedeCancelar(reserva, inicio - 86_400_000)).toBe(true);
+    expect(puedeCancelar(reserva, inicio - 86_399_999)).toBe(false);
+    expect(puedeCancelar(reserva, inicio - 12 * 3_600_000)).toBe(false);
+    expect(
+      puedeCancelar({ ...reserva, estado: "CANCELADA" }, inicio - 86_400_001),
+    ).toBe(false);
   });
   it("rechaza franjas vacías y hora final anterior", () => {
     expect(errorHorarios([])).toBeTruthy();
