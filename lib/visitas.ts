@@ -106,3 +106,56 @@ export const colorEstado: Record<EstadoVisita, string> = {
   VENCIDA: "#d97706",
   CANCELADA: "#6b7280",
 };
+
+// ===== H14 — Control de accesos =====
+
+export type Condicion = "PREAUTORIZADA" | "SIN_AUTORIZACION";
+
+export const etiquetaCondicion: Record<Condicion, string> = {
+  PREAUTORIZADA: "Preautorizada",
+  SIN_AUTORIZACION: "Sin autorización",
+};
+
+/** Lo que devuelve el buscador de la puerta: solo lo utilizable ahora. */
+export type AutorizacionBuscada = {
+  id: string;
+  visitanteNombre: string;
+  visitanteDocumento: string;
+  unidadCodigo: string;
+  inicio: string;
+  fin: string;
+};
+
+export type Presente = {
+  id: string;
+  visitanteNombre: string;
+  visitanteDocumento: string;
+  unidadCodigo: string;
+  condicion: Condicion;
+  ingresoAt: string;
+};
+
+export type UnidadOpcion = { id: string; codigo: string };
+
+export const MINIMO_BUSQUEDA = 3;
+
+export function errorBusqueda(valor: string) {
+  const v = valor.trim();
+  if (v.length > 0 && v.length < MINIMO_BUSQUEDA)
+    return `Escriba al menos ${MINIMO_BUSQUEDA} caracteres`;
+  if (v.length > 100) return "La búsqueda admite hasta 100 caracteres";
+  return "";
+}
+
+/**
+ * En la puerta solo interesa la hora del ingreso: el turno es de hoy y la
+ * fecha completa haría más ancha una tabla que se lee de un vistazo.
+ */
+export function hora(iso: string) {
+  return new Intl.DateTimeFormat("es-SV", {
+    timeZone: "America/El_Salvador",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(iso));
+}
