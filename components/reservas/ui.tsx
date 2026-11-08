@@ -51,15 +51,27 @@ export function Navegacion({ rol }: { rol: Rol }) {
       className="flex flex-wrap gap-4 text-sm font-medium"
     >
       <Link href="/">Inicio</Link>
-      {rol !== "SEGURIDAD" && <Link href="/areas">Áreas comunes</Link>}
-      {rol === "RESIDENTE" && (
-        <>
-          <Link href="/reservas">Mis reservas</Link>
-          <Link href="/reservas/nueva">Nueva reserva</Link>
-        </>
+
+      {rol !== "SEGURIDAD" && (
+        <Link href="/areas">Áreas comunes</Link>
       )}
+
+     {rol === "RESIDENTE" && (
+  <>
+    <Link href="/reservas">Mis reservas</Link>
+    <Link href="/reservas/nueva">Nueva reserva</Link>
+    <Link href="/paquetes">Mis paquetes</Link>
+    <Link href="/asambleas">Asambleas</Link>
+  </>
+)}
+
       {rol === "ADMINISTRADOR" && (
-        <Link href="/admin/areas">Administrar áreas</Link>
+        <>
+          <Link href="/admin/areas">Administrar áreas</Link>
+          <Link href="/admin/asambleas/nueva">
+            Convocar asamblea
+          </Link>
+        </>
       )}
     </nav>
   );
