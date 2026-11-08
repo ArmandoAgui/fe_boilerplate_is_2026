@@ -228,6 +228,22 @@ describe("Autorizar una visita", () => {
     expect(enviado.fin).toMatch(/-06:00$/);
   });
 
+  it("rechaza un inicio que pasó mientras el formulario seguía abierto", () => {
+    const inicial = Date.parse("2026-11-08T18:00:00Z");
+    const reloj = vi.spyOn(Date, "now").mockReturnValue(inicial);
+    try {
+      completar(2, 10);
+      const guardar = screen.getByRole("button", { name: "Guardar" });
+      expect(guardar).toBeEnabled();
+      reloj.mockReturnValue(inicial + 3 * HORA);
+      fireEvent.click(guardar);
+      expect(screen.getByText("El inicio no puede ser anterior a ahora")).toBeVisible();
+      expect(crearAutorizacion).not.toHaveBeenCalled();
+    } finally {
+      reloj.mockRestore();
+    }
+  });
+
   it("muestra el error que devuelve el servidor", async () => {
     vi.mocked(crearAutorizacion).mockResolvedValue({
       error: "La unidad no está vinculada a tu usuario",
