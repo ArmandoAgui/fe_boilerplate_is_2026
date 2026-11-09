@@ -51,3 +51,66 @@ export function dinero(monto: string): string {
   const conComas = entero.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return `$${conComas}.${decimales.padEnd(2, "0").slice(0, 2)}`;
 }
+
+// ---------- H1: estado de cuenta ----------
+
+export type EstadoCuota = "PENDIENTE" | "VENCIDA" | "PAGADA";
+
+export type Cuota = {
+  id: string;
+  concepto: string;
+  periodo: string;
+  monto: string;
+  fechaVencimiento: string; // AAAA-MM-DD
+  estado: EstadoCuota;
+};
+
+export type DetalleCuota = Cuota & {
+  unidadId: string;
+  fechaPago: string | null;
+};
+
+export type ListaCuotas = {
+  datos: Cuota[];
+  totalPendiente: string;
+  total: number;
+  pagina: number;
+  tamanoPagina: number;
+};
+
+export const ESTADOS_CUOTA: EstadoCuota[] = ["PENDIENTE", "VENCIDA", "PAGADA"];
+
+export const etiquetaEstadoCuota: Record<EstadoCuota, string> = {
+  PENDIENTE: "Pendiente",
+  VENCIDA: "Vencida",
+  PAGADA: "Pagada",
+};
+
+// Mismos tonos que usa Visitas para estados equivalentes, para que el sistema
+// se lea igual en todos los módulos.
+export const colorEstadoCuota: Record<EstadoCuota, string> = {
+  PENDIENTE: "#2563eb",
+  VENCIDA: "#d97706",
+  PAGADA: "#16a34a",
+};
+
+/** "2026-11-10" → "10/11/2026", sin pasar por Date para no correr el día. */
+export function fechaCorta(fecha: string): string {
+  const [anio, mes, dia] = fecha.slice(0, 10).split("-");
+  return `${dia}/${mes}/${anio}`;
+}
+
+/** Fecha y hora de un instante ISO en hora de El Salvador. */
+export function fechaHoraLocal(iso: string): string {
+  return new Intl.DateTimeFormat("es-SV", {
+    timeZone: "America/El_Salvador",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })
+    .format(new Date(iso))
+    .replace(",", "");
+}
