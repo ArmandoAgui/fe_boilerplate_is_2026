@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { test, expect, type Page } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
+const screenshots = process.env.E2E_SCREENSHOTS_DIR ?? "docs/screenshots";
 const api = process.env.E2E_API_URL ?? "http://localhost:3100/api/v1";
 const fecha = new Date(Date.now() + 2 * 86400000 - 6 * 3600000)
   .toISOString()
@@ -22,7 +23,7 @@ for (const mobile of [false, true]) {
     request,
   }) => {
     if (mobile) await page.setViewportSize({ width: 390, height: 844 });
-    await mkdir("docs/screenshots", { recursive: true });
+    await mkdir(screenshots, { recursive: true });
     const nombre = `Área E2E ${randomUUID().slice(0, 8)}`;
     const adminLogin = await request.post(`${api}/auth/login`, {
       data: { email: "admin@condominio.test", password: "Prueba123!" },
@@ -53,7 +54,7 @@ for (const mobile of [false, true]) {
       ).id;
       if (!mobile)
         await page.screenshot({
-          path: "docs/screenshots/admin-areas.png",
+          path: `${screenshots}/admin-areas.png`,
           fullPage: true,
         });
       await logout(page);
@@ -89,20 +90,42 @@ for (const mobile of [false, true]) {
         page.getByRole("region", { name: "Selección de reserva" }),
       ).toContainText("14:00");
       await page.screenshot({
-        path: `docs/screenshots/confirmacion-${mobile ? "movil" : "escritorio"}.png`,
+        path: `${screenshots}/confirmacion-${mobile ? "movil" : "escritorio"}.png`,
         fullPage: true,
       });
       await page.getByLabel("Asistentes", { exact: true }).fill("3");
-      await page.getByRole("button", { name: "Confirmar reserva" }).click();
-      await expect(page).toHaveURL(/\/reservas\?confirmada=RES-/);
-      await expect(page.getByText(/Reserva confirmada · RES-/)).toBeVisible();
+      await page.getByRole("button", { name: "Solicitar reserva" }).click();
+      await expect(page).toHaveURL(/\/reservas\?solicitada=RES-/);
+      await expect(page.getByText(/Solicitud enviada · RES-/)).toBeVisible();
       const card = page
         .getByRole("article")
         .filter({ has: page.getByRole("heading", { name: nombre }) });
       await expect(card).not.toContainText("Unidad:");
+      await expect(card).toContainText("Pendiente de aprobación");
+      await page.goto(`/areas/${areaId}/disponibilidad?fecha=${fecha}`);
+      await expect(
+        page.getByRole("link", { name: "Reservar 12:00, disponible" }),
+      ).toBeVisible();
+      await logout(page);
+      await login(page, "admin@condominio.test");
+      await page.goto("/admin/reservas");
+      const solicitud = page
+        .getByRole("article")
+        .filter({ has: page.getByRole("heading", { name: nombre }) });
+      await solicitud
+        .getByRole("button", { name: "Aprobar", exact: true })
+        .click();
+      await page.screenshot({ path: `${screenshots}/aprobacion-${mobile ? "movil" : "escritorio"}.png`, fullPage: true });
+      await page
+        .getByRole("button", { name: "Aprobar reserva", exact: true })
+        .click();
+      await expect(page.getByText(/Reserva RES-.* aprobada/)).toBeVisible();
+      await logout(page);
+      await login(page, "residente1@condominio.test");
+      await page.goto("/reservas");
       await expect(card).toContainText("Confirmada");
       await page.screenshot({
-        path: `docs/screenshots/reserva-${mobile ? "movil" : "escritorio"}.png`,
+        path: `${screenshots}/reserva-${mobile ? "movil" : "escritorio"}.png`,
         fullPage: true,
       });
       await card.getByRole("button", { name: "Cancelar", exact: true }).click();
@@ -121,7 +144,7 @@ for (const mobile of [false, true]) {
         page.getByRole("link", { name: "Reservar 12:00, disponible" }),
       ).toBeVisible();
       await page.screenshot({
-        path: `docs/screenshots/disponibilidad-${mobile ? "movil" : "escritorio"}.png`,
+        path: `${screenshots}/disponibilidad-${mobile ? "movil" : "escritorio"}.png`,
         fullPage: true,
       });
       await page
@@ -142,7 +165,14 @@ for (const mobile of [false, true]) {
       });
       expect(choque.status()).toBe(201);
       reservaConflicto = (await choque.json()).id;
-      await page.getByRole("button", { name: "Confirmar reserva" }).click();
+      const aprobacion = await request.patch(
+        `${api}/reservas/${reservaConflicto}/aprobacion`,
+        {
+          headers: { Authorization: `Bearer ${adminToken}` },
+        },
+      );
+      expect(aprobacion.status()).toBe(200);
+      await page.getByRole("button", { name: "Solicitar reserva" }).click();
       await expect(page.getByRole("main").getByRole("alert")).toHaveText(
         "Ese horario ya fue reservado. Elija otro.",
       );
@@ -182,7 +212,8 @@ test("sesión, permisos y navegación por rol", async ({ page, context }) => {
     {
       name: "session",
       value: "sesion-invalida",
-      domain: "localhost",
+      domain: new URL(process.env.E2E_BASE_URL ?? "http://localhost:3101")
+        .hostname,
       path: "/",
       httpOnly: true,
       sameSite: "Lax",

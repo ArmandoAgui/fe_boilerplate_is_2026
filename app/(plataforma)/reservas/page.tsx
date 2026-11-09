@@ -6,7 +6,7 @@ import type { ListaReservas } from "@/lib/reservas";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ pagina?: string; confirmada?: string }>;
+  searchParams: Promise<{ pagina?: string; solicitada?: string }>;
 }) {
   const usuario = await usuarioActual();
   if (usuario.rol !== "RESIDENTE") return <SinPermiso />;
@@ -25,9 +25,9 @@ export default async function Page({
     <>
       <Titulo
         titulo="Mis reservas"
-        detalle="Tus reservas personales, ordenadas por fecha de inicio. Puedes cancelar con al menos 24 horas de anticipación."
+        detalle="Tus reservas personales, ordenadas por fecha de inicio. Las solicitudes esperan aprobación y no apartan el horario. Puedes cancelar con al menos 24 horas de anticipación."
       />
-      <MisReservas lista={lista} confirmada={query.confirmada} />
+      <MisReservas lista={lista} solicitada={query.solicitada} />
     </>
   );
 }
