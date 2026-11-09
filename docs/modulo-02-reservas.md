@@ -1,12 +1,14 @@
 # Módulo 2 frontend — H5–H8
 
-Responsable: Armando Antonio Aguilar Rosales. Sonnet 5. Actualizado 29/10/2026.
+Responsable: Armando Antonio Aguilar Rosales. Sonnet 5. Actualizado 09/11/2026.
 
 ## Fuentes y cambio de alcance
 
 Se revisaron el PDF del 28/10/2026 (páginas 3–7,15–20), main inicial `861ee56`, docs/analisis-inicial (`a124bb1`), autenticación, integración y guías locales de Next 16.3.6. No se modifica la documentación de análisis.
 
 **Decisión posterior explícita del usuario:** reservas personales, máximo dos confirmadas futuras por usuario, solo el creador consulta y cancela. Esta instrucción sustituye la regla por unidad del PDF; se registra en [D-M2-01 del backend](https://github.com/ArmandoAgui/be_boilerplate_is_2026/blob/feature/modulo-02-reservas/docs/decisiones/2026-10-29-reservas-personales.md). El formulario y las tarjetas ya no solicitan ni muestran unidades.
+
+**Flujo vigente:** las reservas nuevas requieren aprobación del administrador y no apartan el horario mientras están pendientes. Véase [D-M2-03](decisiones/2026-11-09-aprobacion-administrativa.md).
 
 ## Arquitectura y seguridad
 
@@ -24,12 +26,13 @@ Zustand mantiene usuario/rol/unidades de presentación, conforme a la adaptació
 | /areas | Residente, Administrador | Catálogo de áreas activas y capacidad |
 | /areas/[id]/disponibilidad | Residente, Administrador | Fecha hoy–hoy+30 y bloques con texto/símbolo/color; enlaces a reservar solo para residente |
 | /reservas/nueva | Residente | Sin selección redirige a áreas. Con selección, resumen fijo de área/fecha/inicio, duración y asistentes editables |
-| /reservas | Residente | Solo reservas del creador, paginación, confirmación y cancelación modal |
+| /reservas | Residente | Solo reservas del creador, paginación, estado pendiente/confirmado/cancelado y cancelación modal |
+| /admin/reservas | Administrador | Solicitudes futuras por orden de llegada; aprobar con confirmación y manejo de conflictos |
 | /admin/areas | Administrador | Tabla incluidas inactivas y editor de franjas múltiples por día |
 
 El residente elige área y bloque en disponibilidad. La confirmación muestra un resumen, no inputs deshabilitados: nombre/capacidad, fecha larga local e intervalo (fin recalculado por duración). No permite cambiar área, fecha o inicio desde esa pantalla. “Elegir otro horario” regresa a la disponibilidad del área y fecha elegidas; desde allí se pueden consultar otras áreas. Si los parámetros son incompletos/incorrectos, no se puede enviar una reserva. El backend sigue validando cualquier dato manipulado o un horario que dejó de estar disponible.
 
-El formulario pide solo duración (1–4 horas) y asistentes (1–capacidad). Muestra error bajo campo y error de servidor accesible. Con 409 conserva los valores y el resumen. Al confirmar redirige a Mis reservas con código y estado. Las tarjetas muestran área/fecha/horario/asistentes/estado; no unidad. Cancelar exige confirmación, actualiza tarjeta, anuncia Reserva cancelada y revalida disponibilidad/lista. El botón se recalcula cada 30s y se muestra cuando faltan al menos 24 horas, incluido el corte exacto, igual que la API (aclaración del instructor del 07/11/2026).
+El formulario pide solo duración (1–4 horas) y asistentes (1–capacidad). Muestra error bajo campo y error de servidor accesible. Con 409 conserva los valores y el resumen. Al solicitar redirige a Mis reservas con código y estado PENDIENTE. La aprobación administrativa es la que confirma y ocupa el horario. Las tarjetas muestran área/fecha/horario/asistentes/estado; no unidad. Cancelar exige confirmación, actualiza tarjeta, anuncia Reserva cancelada y revalida disponibilidad/lista. El botón se recalcula cada 30s y se muestra cuando faltan al menos 24 horas, incluido el corte exacto, igual que la API (aclaración del instructor del 07/11/2026).
 
 `components/reservas/ui.tsx`: Titulo/Catalogo/Navegacion/SinPermiso. Componentes específicos: Disponibilidad, NuevaReserva, MisReservas, AdminAreas. `lib/reservas.ts` agrupa tipos y utilidades. Loading con skeleton, error boundaries con Reintentar, vacío de catálogo/reservas/áreas y not-found de área inexistente/inactiva. Responsive, controles etiquetados, foco visible y modal nativo accesible. No se incluyen imágenes externas.
 
@@ -41,7 +44,7 @@ Claro: marfil suave/salvia. **Oscuro: gris grafito**, superficies neutras y acen
 
 ## Contratos
 
-API_URL incluye /api/v1 y es solo servidor. Endpoints consumidos: auth/me, areas, areas/:id/disponibilidad, POST reservas, GET reservas/mias, PATCH reservas/:id/cancelacion y POST/PATCH areas. Ya no se envía unidadId.
+API_URL incluye /api/v1 y es solo servidor. Endpoints consumidos: auth/me, areas, areas/:id/disponibilidad, POST reservas, GET reservas/mias, PATCH reservas/:id/cancelacion , GET reservas/pendientes y PATCH reservas/:id/aprobacion (administrador), y POST/PATCH areas. Ya no se envía unidadId.
 
 ```json
 {"areaId":"11111111-1111-4111-8111-111111111111","inicio":"2026-10-30T18:00:00.000Z","duracionHoras":2,"asistentes":4}
@@ -55,7 +58,7 @@ Fechas/hora seleccionadas se transforman de America/El_Salvador a ISO UTC. No se
 
 ## Ejecución
 
-Requiere el backend complementario con **ambas migraciones del módulo**, incluida `20261029160000_reservas_personales`. Nuevas reservas no requieren unidad. No desplegar este frontend con el contrato antiguo.
+Requiere el backend complementario con todas las migraciones del módulo, incluidas las de aprobación del 09/11 y `20261029160000_reservas_personales`. Nuevas reservas no requieren unidad. No desplegar este frontend con el contrato antiguo.
 
 ```bash
 npm ci
@@ -80,7 +83,7 @@ npx playwright install chromium
 E2E_BASE_URL=http://localhost:3103 E2E_API_URL=http://localhost:3102/api/v1 npm run test:e2e
 ```
 
-Resultados actuales: **24 pruebas de componentes** (incluyen resumen fijo, usuario sin unidad, selección incompleta, 409 conservando resumen, validación y cancelación). Cinco escenarios de navegador: flujos completos escritorio/móvil con confirmación sin campos editables de área/fecha/inicio/unidad y conflicto real generado por otro usuario; roles/sesión; persistencia/SSR/contraste de temas; Sistema/teclado/móvil. El backend tiene 40 unitarias y 14 HTTP/PostgreSQL con las nuevas reglas personales y concurrencia real. Las comprobaciones finales se reportan en los PR.
+Resultados históricos de la entrega inicial: **24 pruebas de componentes** (incluyen resumen fijo, usuario sin unidad, selección incompleta, 409 conservando resumen, validación y cancelación). Cinco escenarios de navegador: flujos completos escritorio/móvil con confirmación sin campos editables de área/fecha/inicio/unidad y conflicto real generado por otro usuario; roles/sesión; persistencia/SSR/contraste de temas; Sistema/teclado/móvil. El backend tiene 40 unitarias y 14 HTTP/PostgreSQL con las nuevas reglas personales y concurrencia real. Las comprobaciones finales se reportan en los PR.
 
 CI frontend verifica instalación/lint/typecheck/unitarias/build. Navegador entre repositorios se ejecuta localmente con el backend complementario; no está simulado con mocks. Los escenarios de flujo generan áreas propias y las desactivan al finalizar, sin tocar datos del usuario. No usar producción.
 

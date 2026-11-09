@@ -75,6 +75,9 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-accent: var(--accent);
+  --color-success-soft: var(--success-soft);
+  --color-success-text: var(--success-text);
+  --color-success-line: var(--success-line);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -157,6 +160,11 @@ body {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
+  .status-pending {
+    background: var(--surface-alt);
+    color: var(--foreground);
+    border: 1px solid var(--line);
+  }
   .status-confirmed {
     background: var(--success-soft);
     color: var(--success-text);
@@ -194,14 +202,14 @@ input[type="checkbox"] {
 dialog::backdrop {
   background: rgb(15 30 21 / 62%);
 }
-nav a {
+nav.default-navigation a {
   display: inline-flex;
   align-items: center;
   min-height: 2.75rem;
   padding: 0.25rem 0.125rem;
   border-bottom: 2px solid transparent;
 }
-nav a:hover {
+nav.default-navigation a:hover {
   color: var(--accent);
   border-bottom-color: var(--accent);
 }
@@ -217,5 +225,40 @@ nav a:hover {
   }
   .reservation-summary time {
     font-variant-numeric: tabular-nums;
+  }
+  .incidencia-pill {
+    @apply inline-flex whitespace-nowrap rounded-full px-2 py-1 text-[10px] font-semibold leading-none;
+  }
+  .incidencia-prioridad-urgente {
+    background: #f7e0df;
+    color: #8e292b;
+  }
+  .incidencia-prioridad-alta {
+    background: #f5ead3;
+    color: #79520f;
+  }
+  .incidencia-prioridad-media {
+    background: #e2ebf3;
+    color: #365c78;
+  }
+  .incidencia-prioridad-baja {
+    background: var(--surface-alt);
+    color: var(--muted);
+  }
+  .incidencia-estado-abierta {
+    background: #e2ebf3;
+    color: #365c78;
+  }
+  .incidencia-estado-asignada {
+    background: #f5ead3;
+    color: #79520f;
+  }
+  .incidencia-estado-en_proceso {
+    background: #f5ead3;
+    color: #79520f;
+  }
+  .incidencia-estado-resuelta {
+    background: var(--success-soft);
+    color: var(--success-text);
   }
 }

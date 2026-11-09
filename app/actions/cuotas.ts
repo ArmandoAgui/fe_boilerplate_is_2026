@@ -1,7 +1,11 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { api, ApiError } from "@/lib/api";
-import type { PreviaGeneracion, ResultadoGeneracion } from "@/lib/cuotas";
+import type {
+  DetalleMorosidad,
+  PreviaGeneracion,
+  ResultadoGeneracion,
+} from "@/lib/cuotas";
 
 export type Resultado<T> = { datos?: T; error?: string; status?: number };
 
@@ -38,6 +42,20 @@ export async function generarCuotas(
       body: JSON.stringify({ periodo }),
     });
     revalidatePath("/admin/cuotas/generar");
+    return { datos };
+  } catch (error) {
+    return fallo(error);
+  }
+}
+
+/** H4: cuotas vencidas de una unidad, para el panel de detalle. */
+export async function obtenerDetalleMorosidad(
+  unidadId: string,
+): Promise<Resultado<DetalleMorosidad>> {
+  try {
+    const datos = await api<DetalleMorosidad>(
+      `administracion/morosidad/${encodeURIComponent(unidadId)}`,
+    );
     return { datos };
   } catch (error) {
     return fallo(error);
