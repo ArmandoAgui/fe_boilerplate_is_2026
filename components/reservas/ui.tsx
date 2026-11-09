@@ -71,6 +71,7 @@ export function Navegacion({ rol }: { rol: Rol }) {
         <>
           <Link href="/admin/areas">Administrar áreas</Link>
           <Link href="/admin/cuotas/generar">Generar cuotas</Link>
+          <Link href="/admin/morosidad">Morosidad</Link>
           <Link href="/seguridad/presentes">Visitantes presentes</Link>
         </>
       )}
