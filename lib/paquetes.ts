@@ -1,3 +1,4 @@
+export type ListaPaquetes={datos:Paquete[];total:number;pagina:number;tamanoPagina:number};
 export type EstadoPaquete = "PENDIENTE" | "ENTREGADO";
 
 export type UnidadOpcion = { id: string; codigo: string; torre: string };
