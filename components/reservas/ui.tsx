@@ -57,6 +57,8 @@ export function Navegacion({ rol }: { rol: Rol }) {
           <Link href="/reservas">Mis reservas</Link>
           <Link href="/reservas/nueva">Nueva reserva</Link>
           <Link href="/visitas">Mis visitantes</Link>
+          <Link href="/paquetes">Mis paquetes</Link>
+          <Link href="/asambleas">Asambleas</Link>
         </>
       )}
       {rol === "SEGURIDAD" && (
@@ -70,6 +72,8 @@ export function Navegacion({ rol }: { rol: Rol }) {
           <Link href="/admin/areas">Administrar áreas</Link>
           <Link href="/admin/cuotas/generar">Generar cuotas</Link>
           <Link href="/seguridad/presentes">Visitantes presentes</Link>
+          <Link href="/admin/asambleas/nueva">Convocar asamblea</Link>
+         <Link href="/asambleas">Asambleas</Link>
         </>
       )}
     </nav>
