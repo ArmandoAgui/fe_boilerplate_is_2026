@@ -59,13 +59,22 @@ export function Navegacion({ rol }: { rol: Rol }) {
           <Link href="/reservas/nueva">Nueva reserva</Link>
           <Link href="/visitas">Mis visitantes</Link>
           <EnlaceIncidencias />
+          <Link href="/cuotas">Estado de cuenta</Link>
         </>
       )}
       {rol === "SEGURIDAD" && (
-        <Link href="/seguridad/accesos">Control de accesos</Link>
+        <>
+          <Link href="/seguridad/accesos">Control de accesos</Link>
+          <Link href="/seguridad/presentes">Visitantes presentes</Link>
+          <Link href="/seguridad/paquetes/nuevo">Recibir paquete</Link>
+        </>
       )}
       {rol === "ADMINISTRADOR" && (
-        <Link href="/admin/areas">Administrar áreas</Link>
+        <>
+          <Link href="/admin/areas">Administrar áreas</Link>
+          <Link href="/admin/cuotas/generar">Generar cuotas</Link>
+          <Link href="/seguridad/presentes">Visitantes presentes</Link>
+        </>
       )}
     </nav>
   );

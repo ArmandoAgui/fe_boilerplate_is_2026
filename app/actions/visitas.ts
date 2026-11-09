@@ -2,7 +2,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
-import type { Autorizacion, AutorizacionBuscada } from "@/lib/visitas";
+import type {
+  Autorizacion,
+  AutorizacionBuscada,
+  Presente,
+} from "@/lib/visitas";
 
 export type Resultado = { error?: string; status?: number; ok?: boolean };
 
@@ -102,4 +106,32 @@ export async function registrarSalida(id: string): Promise<Resultado> {
   }
   revalidatePath("/seguridad/accesos");
   return { ok: true };
+}
+
+// ===== H15 =====
+
+export type ListaPresentes = {
+  datos?: Presente[];
+  total?: number;
+  error?: string;
+};
+
+export async function listarPresentes(
+  buscar?: string,
+  unidadId?: string,
+): Promise<ListaPresentes> {
+  // Los filtros vacíos no se mandan: el DTO exige al menos un carácter en
+  // `buscar` y un uuid en `unidadId`, así que enviarlos vacíos daría 400.
+  const params = new URLSearchParams();
+  if (buscar) params.set("buscar", buscar);
+  if (unidadId) params.set("unidadId", unidadId);
+  const query = params.toString();
+  try {
+    const lista = await api<{ datos: Presente[]; total: number }>(
+      `visitas/presentes${query ? `?${query}` : ""}`,
+    );
+    return { datos: lista.datos, total: lista.total };
+  } catch (error) {
+    return fallo(error);
+  }
 }
