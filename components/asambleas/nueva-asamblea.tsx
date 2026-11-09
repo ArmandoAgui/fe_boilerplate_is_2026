@@ -1,7 +1,7 @@
 "use client";
 import { useState,useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { crearAsamblea,publicarAsamblea } from '@/app/actions/historias-19-20-21';
+import { crearAsamblea,publicarAsamblea } from '@/app/actions/asamblea';
 type TemaForm={pregunta:string;aperturaAt:string;cierreAt:string;opciones:string[]};
 const temaVacio=():TemaForm=>({pregunta:'',aperturaAt:'',cierreAt:'',opciones:['','']});
 function iso(v:string){return `${v}:00-06:00`;}

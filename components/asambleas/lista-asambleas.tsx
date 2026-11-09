@@ -1,6 +1,6 @@
 "use client";
 import { useState,useTransition } from 'react';
-import { emitirVoto,estadoVoto } from '@/app/actions/historias-19-20-21';
+import { emitirVoto,estadoVoto } from '@/app/actions/asamblea';
 import type { Asamblea,Unidad } from '@/lib/asambleas';
 export function ListaAsambleas({asambleas,unidades,rol}:{asambleas:Asamblea[];unidades:Unidad[];rol:string}){const [unidad,setUnidad]=useState(unidades[0]?.id??'');const [seleccion,setSeleccion]=useState<Record<string,string>>({});const [votos,setVotos]=useState<Record<string,{yaVoto:boolean;fecha:string|null}>>({});const [mensaje,setMensaje]=useState('');const [error,setError]=useState('');const [pending,start]=useTransition();
  async function estado(temaId:string){const r=await estadoVoto(temaId,unidad);if(r.ok&&r.data){setVotos(p=>({...p,[temaId]:r.data as {yaVoto:boolean;fecha:string|null}}));}}

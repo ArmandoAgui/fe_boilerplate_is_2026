@@ -2,7 +2,7 @@
 import { useState,useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ListaPaquetes } from '@/lib/paquetes';
-import { listarPaquetes } from '@/app/actions/historias-19-20-21';
+import { listarPaquetes } from '@/app/actions/asamblea';
 export function MisPaquetes({lista,unidades}:{lista:ListaPaquetes;unidades:{id:string;codigo:string}[]}){
  const router=useRouter();const [unidad,setUnidad]=useState(unidades[0]?.id??'');const [estado,setEstado]=useState<'PENDIENTE'|'ENTREGADO'>('PENDIENTE');const [pagina,setPagina]=useState(1);const [datos,setDatos]=useState(lista);const [error,setError]=useState('');const [pending,start]=useTransition();
  function cargar(u=unidad,e=estado,p=1){start(async()=>{const r=await listarPaquetes(u,e,p);if('error'in r){setError(r.error??'Error');return;}setDatos(r);setPagina(p);setError('');});}
