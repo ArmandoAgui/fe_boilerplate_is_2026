@@ -124,11 +124,14 @@ describe("Control de accesos", () => {
       target: { value: "andres" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Buscar" }));
-    fireEvent.click(
-      await screen.findByRole("button", {
-        name: "Registrar entrada de Andres Lopez",
-      }),
-    );
+    const boton = await screen.findByRole("button", {
+      name: "Registrar entrada de Andres Lopez",
+    });
+    // Todos los botones comparten el pendiente del useTransition, así que
+    // mientras corre la búsqueda este queda deshabilitado. Hay que esperar a
+    // que se habilite, igual que esperaría quien está en la puerta.
+    await waitFor(() => expect(boton).not.toBeDisabled());
+    fireEvent.click(boton);
     await waitFor(() =>
       expect(registrarEntrada).toHaveBeenCalledWith({ autorizacionId: "a1" }),
     );
@@ -159,11 +162,14 @@ describe("Control de accesos", () => {
       target: { value: "andres" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Buscar" }));
-    fireEvent.click(
-      await screen.findByRole("button", {
-        name: "Registrar entrada de Andres Lopez",
-      }),
-    );
+    const boton = await screen.findByRole("button", {
+      name: "Registrar entrada de Andres Lopez",
+    });
+    // Todos los botones comparten el pendiente del useTransition, así que
+    // mientras corre la búsqueda este queda deshabilitado. Hay que esperar a
+    // que se habilite, igual que esperaría quien está en la puerta.
+    await waitFor(() => expect(boton).not.toBeDisabled());
+    fireEvent.click(boton);
     expect(
       await screen.findByText("La autorización no está vigente"),
     ).toBeTruthy();
