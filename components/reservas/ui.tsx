@@ -63,6 +63,7 @@ export function Navegacion({ rol }: { rol: Rol }) {
         <>
           <Link href="/seguridad/accesos">Control de accesos</Link>
           <Link href="/seguridad/presentes">Visitantes presentes</Link>
+          <Link href="/seguridad/paquetes/nuevo">Recibir paquete</Link>
         </>
       )}
       {rol === "ADMINISTRADOR" && (
