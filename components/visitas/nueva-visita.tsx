@@ -25,9 +25,9 @@ export function NuevaVisita({ unidades }: { unidades: Unidad[] }) {
   const [inicio, setInicio] = useState("");
   const [fin, setFin] = useState("");
   const [error, setError] = useState("");
+  const [ahora] = useState(() => Date.now());
   const [pending, startTransition] = useTransition();
 
-  const ahora = Date.now();
   const errNombre = nombre ? errorNombre(nombre) : "";
   const errDocumento = documento ? errorDocumento(documento) : "";
   const errVigencia = errorVigencia(inicio, fin, ahora);
@@ -38,6 +38,11 @@ export function NuevaVisita({ unidades }: { unidades: Unidad[] }) {
   function guardar(evento: React.FormEvent) {
     evento.preventDefault();
     if (invalido) return;
+    const errorActual = errorVigencia(inicio, fin, Date.now());
+    if (errorActual) {
+      setError(errorActual);
+      return;
+    }
     setError("");
     startTransition(async () => {
       const result = await crearAutorizacion({
