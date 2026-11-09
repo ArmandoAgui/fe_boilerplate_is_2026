@@ -1,4 +1,9 @@
 import Link from "next/link";
+import {
+  colorEstadoCuota,
+  etiquetaEstadoCuota,
+  type EstadoCuota,
+} from "@/lib/cuotas";
 
 // Duplica a propósito los equivalentes de reservas y visitas, siguiendo la
 // convención del equipo: cada integrante mantiene su módulo sin depender del
@@ -44,5 +49,19 @@ export function Cifra({ etiqueta, valor }: { etiqueta: string; valor: string }) 
       <p className="text-sm text-muted">{etiqueta}</p>
       <p className="mt-1 text-3xl font-semibold tabular-nums">{valor}</p>
     </div>
+  );
+}
+
+/** Punto de color más etiqueta, como en el mockup y en Visitas. */
+export function EstadoCuotaBadge({ estado }: { estado: EstadoCuota }) {
+  return (
+    <span className="inline-flex items-center gap-2 whitespace-nowrap">
+      <span
+        aria-hidden
+        className="size-2 shrink-0 rounded-full"
+        style={{ background: colorEstadoCuota[estado] }}
+      />
+      {etiquetaEstadoCuota[estado]}
+    </span>
   );
 }
