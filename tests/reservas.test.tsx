@@ -29,7 +29,10 @@ import {
   type Reserva,
 } from "@/lib/reservas";
 const navigation = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => navigation }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => navigation,
+  usePathname: () => "/",
+}));
 vi.mock("@/app/actions/reservas", () => ({
   crearReserva: vi.fn(),
   cancelarReserva: vi.fn(),
@@ -402,6 +405,10 @@ describe("permisos y fechas", () => {
       expect(!!screen.queryByRole("link", { name: "Mis reservas" })).toBe(
         rol === "RESIDENTE",
       );
+      const enlaceReporte = screen
+        .queryAllByRole("link", { name: "Incidencias" })
+        .some((enlace) => enlace.getAttribute("href") === "/incidencias/nueva");
+      expect(enlaceReporte).toBe(rol === "RESIDENTE");
     },
   );
   it("rango inclusivo 30 días y fechas reales", () => {

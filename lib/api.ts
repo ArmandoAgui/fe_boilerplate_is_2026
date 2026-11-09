@@ -16,28 +16,31 @@ export async function api<T>(ruta: string, init?: RequestInit): Promise<T> {
   if (!token) redirect("/login");
   const base = process.env.API_URL;
   if (!base) throw new Error("Falta API_URL");
+  const headers = new Headers(init?.headers);
+  if (init?.body instanceof FormData) headers.delete("Content-Type");
+  else if (!headers.has("Content-Type"))
+    headers.set("Content-Type", "application/json");
+  headers.set("Authorization", `Bearer ${token}`);
   const response = await fetch(new URL(ruta, base.replace(/\/?$/, "/")), {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
     cache: "no-store",
-    signal: AbortSignal.timeout(15000),
+    signal: init?.signal ?? AbortSignal.timeout(15_000),
   });
   if (response.status === 401) redirect("/login?expired=1");
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok)
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
     throw new ApiError(
       response.status,
-      Array.isArray(data.message)
+      Array.isArray(data?.message)
         ? data.message.join("; ")
-        : (data.message ??
-            "No se pudo completar la operación. Intente de nuevo."),
-      typeof data.campo === "string" ? data.campo : undefined,
+        : typeof data?.message === "string"
+          ? data.message
+          : "No se pudo completar la operación. Intente de nuevo.",
+      typeof data?.campo === "string" ? data.campo : undefined,
     );
-  return data as T;
+  }
+  return (await response.json()) as T;
 }
 export async function usuarioActual() {
   return api<Usuario>("auth/me");

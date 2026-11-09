@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EnlaceIncidencias } from "@/components/incidencias/enlace-incidencias";
 import type { Area, Rol } from "@/lib/reservas";
 export function SinPermiso() {
   return (
@@ -57,6 +58,7 @@ export function Navegacion({ rol }: { rol: Rol }) {
           <Link href="/reservas">Mis reservas</Link>
           <Link href="/reservas/nueva">Nueva reserva</Link>
           <Link href="/visitas">Mis visitantes</Link>
+          <EnlaceIncidencias />
           <Link href="/cuotas">Estado de cuenta</Link>
         </>
       )}
