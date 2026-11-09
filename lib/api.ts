@@ -6,6 +6,7 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public campo?: string,
   ) {
     super(message);
   }
@@ -26,7 +27,7 @@ export async function api<T>(ruta: string, init?: RequestInit): Promise<T> {
     signal: AbortSignal.timeout(15000),
   });
   if (response.status === 401) redirect("/login?expired=1");
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
   if (!response.ok)
     throw new ApiError(
       response.status,
@@ -34,6 +35,7 @@ export async function api<T>(ruta: string, init?: RequestInit): Promise<T> {
         ? data.message.join("; ")
         : (data.message ??
             "No se pudo completar la operación. Intente de nuevo."),
+      typeof data.campo === "string" ? data.campo : undefined,
     );
   return data as T;
 }
