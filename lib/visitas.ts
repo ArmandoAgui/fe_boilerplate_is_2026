@@ -159,3 +159,28 @@ export function hora(iso: string) {
     hour12: false,
   }).format(new Date(iso));
 }
+
+// ===== H15 — Visitantes presentes =====
+
+export const MAXIMO_BUSQUEDA_PRESENTES = 50;
+export const REFRESCO_PRESENTES_MS = 10_000;
+
+export function errorBuscarPresentes(valor: string) {
+  if (valor.trim().length > MAXIMO_BUSQUEDA_PRESENTES)
+    return `La búsqueda admite hasta ${MAXIMO_BUSQUEDA_PRESENTES} caracteres`;
+  return "";
+}
+
+/**
+ * Con segundos, a diferencia de `hora`: el sello de última actualización tiene
+ * que notarse cada 10 segundos, y solo con minutos parecería congelado.
+ */
+export function horaConSegundos(fecha: Date) {
+  return new Intl.DateTimeFormat("es-SV", {
+    timeZone: "America/El_Salvador",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(fecha);
+}
