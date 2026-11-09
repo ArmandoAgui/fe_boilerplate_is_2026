@@ -29,7 +29,10 @@ import {
   type Reserva,
 } from "@/lib/reservas";
 const navigation = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => navigation }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => navigation,
+  usePathname: () => "/",
+}));
 vi.mock("@/app/actions/reservas", () => ({
   crearReserva: vi.fn(),
   cancelarReserva: vi.fn(),
@@ -400,6 +403,9 @@ describe("permisos y fechas", () => {
         rol === "ADMINISTRADOR",
       );
       expect(!!screen.queryByRole("link", { name: "Mis reservas" })).toBe(
+        rol === "RESIDENTE",
+      );
+      expect(!!screen.queryByRole("link", { name: "Incidencias" })).toBe(
         rol === "RESIDENTE",
       );
     },
