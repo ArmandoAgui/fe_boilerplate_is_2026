@@ -186,7 +186,7 @@ export function NuevaReserva({
           className="button"
           disabled={pending || Object.values(errores).some(Boolean)}
         >
-          {pending ? "Confirmando…" : "Confirmar reserva"}
+          {pending ? "Enviando…" : "Solicitar reserva"}
         </button>
         <Link
           className="button-secondary"
@@ -196,7 +196,8 @@ export function NuevaReserva({
         </Link>
       </div>
       <p className="mt-4 text-sm text-muted">
-        Puedes tener hasta 2 reservas confirmadas futuras.
+        Tu solicitud requiere aprobación del administrador y no aparta el
+        horario. Puedes tener hasta 2 reservas confirmadas futuras.
       </p>
     </form>
   );

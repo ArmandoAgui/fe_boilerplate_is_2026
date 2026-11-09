@@ -12,10 +12,10 @@ import {
 } from "@/lib/reservas";
 export function MisReservas({
   lista,
-  confirmada,
+  solicitada,
 }: {
   lista: ListaReservas;
-  confirmada?: string;
+  solicitada?: string;
 }) {
   const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -50,9 +50,10 @@ export function MisReservas({
   }
   return (
     <>
-      {confirmada && (
+      {solicitada && (
         <p role="status" className="panel mb-5 border-accent">
-          Reserva confirmada · {confirmada}
+          Solicitud enviada · {solicitada}. El horario queda reservado solo
+          cuando el administrador la apruebe.
         </p>
       )}
       <p role="status" className="mb-4 text-accent">
@@ -71,9 +72,13 @@ export function MisReservas({
                 <div className="flex flex-wrap justify-between gap-2">
                   <p className="font-mono text-sm">{r.codigo}</p>
                   <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${r.estado === "CONFIRMADA" ? "status-confirmed" : "status-cancelled"}`}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${r.estado === "PENDIENTE" ? "status-pending" : r.estado === "CANCELADA" ? "status-cancelled" : "status-confirmed"}`}
                   >
-                    {r.estado === "CONFIRMADA" ? "Confirmada" : "Cancelada"}
+                    {r.estado === "PENDIENTE"
+                      ? "Pendiente de aprobación"
+                      : r.estado === "CONFIRMADA"
+                        ? "Confirmada"
+                        : "Cancelada"}
                   </span>
                 </div>
                 <h2 className="my-3 text-xl font-semibold">{r.areaNombre}</h2>

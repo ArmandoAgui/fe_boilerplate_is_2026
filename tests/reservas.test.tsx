@@ -155,7 +155,7 @@ describe("H6 formulario", () => {
     vi.mocked(crearReserva).mockResolvedValue({ ok: true });
     formulario();
     await userEvent.click(
-      screen.getByRole("button", { name: "Confirmar reserva" }),
+      screen.getByRole("button", { name: "Solicitar reserva" }),
     );
     await waitFor(() =>
       expect(crearReserva).toHaveBeenCalledWith(
@@ -175,7 +175,7 @@ describe("H6 formulario", () => {
     });
     formulario();
     await userEvent.click(
-      screen.getByRole("button", { name: "Confirmar reserva" }),
+      screen.getByRole("button", { name: "Solicitar reserva" }),
     );
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Ese horario ya fue reservado. Elija otro.",
@@ -196,7 +196,7 @@ describe("H6 formulario", () => {
       target: { value: "41" },
     });
     expect(
-      screen.getByRole("button", { name: "Confirmar reserva" }),
+      screen.getByRole("button", { name: "Solicitar reserva" }),
     ).toBeDisabled();
     expect(screen.getByText(/supera la capacidad/)).toBeInTheDocument();
     fireEvent.change(screen.getByRole("spinbutton"), {
@@ -207,7 +207,7 @@ describe("H6 formulario", () => {
     formulario("23:00");
     expect(screen.getByText(/fuera del horario/)).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Confirmar reserva" }),
+      screen.getByRole("button", { name: "Solicitar reserva" }),
     ).toBeDisabled();
     expect(
       screen.getByRole("link", { name: "Elegir otro horario" }),
@@ -242,11 +242,11 @@ describe("H6 formulario", () => {
       screen.queryByLabelText("Unidad habitacional"),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Confirmar reserva" }),
+      screen.getByRole("button", { name: "Solicitar reserva" }),
     ).toBeEnabled();
     vi.mocked(crearReserva).mockResolvedValue({ ok: true });
     await userEvent.click(
-      screen.getByRole("button", { name: "Confirmar reserva" }),
+      screen.getByRole("button", { name: "Solicitar reserva" }),
     );
     expect(crearReserva).toHaveBeenCalledWith(
       expect.not.objectContaining({ unidadId: expect.anything() }),
@@ -258,7 +258,7 @@ describe("H6 formulario", () => {
       screen.getByRole("link", { name: "Consultar áreas" }),
     ).toHaveAttribute("href", "/areas");
     expect(
-      screen.queryByRole("button", { name: "Confirmar reserva" }),
+      screen.queryByRole("button", { name: "Solicitar reserva" }),
     ).not.toBeInTheDocument();
   });
 });
@@ -268,10 +268,10 @@ describe("H7 cancelación", () => {
     render(
       <MisReservas
         lista={{ datos: [reserva], total: 1, pagina: 1, tamanoPagina: 20 }}
-        confirmada="RES-000001"
+        solicitada="RES-000001"
       />,
     );
-    expect(screen.getByText(/Reserva confirmada/)).toBeInTheDocument();
+    expect(screen.getByText(/Solicitud enviada/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Cancelar" }));
     const dialog = screen.getByRole("dialog");
     expect(dialog).toHaveTextContent(

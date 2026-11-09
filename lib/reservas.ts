@@ -28,10 +28,11 @@ export type Reserva = {
   codigo: string;
   areaId: string;
   areaNombre: string;
+  residenteNombre?: string;
   inicio: string;
   fin: string;
   asistentes: number;
-  estado: "CONFIRMADA" | "CANCELADA";
+  estado: "PENDIENTE" | "CONFIRMADA" | "CANCELADA";
 };
 export type ListaReservas = {
   datos: Reserva[];
@@ -70,7 +71,7 @@ export const ANTICIPACION_CANCELACION_MS = 24 * 60 * 60 * 1000;
 
 export function puedeCancelar(reserva: Reserva, ahora = Date.now()) {
   return (
-    reserva.estado === "CONFIRMADA" &&
+    (reserva.estado === "CONFIRMADA" || reserva.estado === "PENDIENTE") &&
     new Date(reserva.inicio).getTime() - ahora >= ANTICIPACION_CANCELACION_MS
   );
 }

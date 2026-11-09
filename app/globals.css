@@ -160,6 +160,11 @@ body {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
+  .status-pending {
+    background: var(--surface-alt);
+    color: var(--foreground);
+    border: 1px solid var(--line);
+  }
   .status-confirmed {
     background: var(--success-soft);
     color: var(--success-text);

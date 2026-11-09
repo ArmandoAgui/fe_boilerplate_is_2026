@@ -28,7 +28,8 @@ export async function crearReserva(data: {
   }
   revalidatePath("/areas", "layout");
   revalidatePath("/reservas");
-  redirect(`/reservas?confirmada=${encodeURIComponent(reserva.codigo)}`);
+  revalidatePath("/admin/reservas");
+  redirect(`/reservas?solicitada=${encodeURIComponent(reserva.codigo)}`);
 }
 export async function cancelarReserva(id: string): Promise<Resultado> {
   try {
@@ -39,6 +40,7 @@ export async function cancelarReserva(id: string): Promise<Resultado> {
     return fallo(error);
   }
   revalidatePath("/reservas");
+  revalidatePath("/admin/reservas");
   revalidatePath("/areas", "layout");
   return { ok: true };
 }
@@ -60,6 +62,20 @@ export async function guardarArea(
     return fallo(error);
   }
   revalidatePath("/admin/areas");
+  revalidatePath("/areas", "layout");
+  return { ok: true };
+}
+
+export async function aprobarReserva(id: string): Promise<Resultado> {
+  try {
+    await api(`reservas/${encodeURIComponent(id)}/aprobacion`, {
+      method: "PATCH",
+    });
+  } catch (error) {
+    return fallo(error);
+  }
+  revalidatePath("/admin/reservas");
+  revalidatePath("/reservas");
   revalidatePath("/areas", "layout");
   return { ok: true };
 }

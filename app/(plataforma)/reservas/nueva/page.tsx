@@ -18,7 +18,7 @@ export default async function Page({
     <>
       <Titulo
         titulo="Nueva reserva"
-        detalle="Revisa el horario que elegiste y completa los detalles para confirmar tu reserva."
+        detalle="Revisa el horario que elegiste y completa los detalles para enviar tu solicitud al administrador."
       />
       <NuevaReserva
         areas={datos.filter((a) => a.activa)}
