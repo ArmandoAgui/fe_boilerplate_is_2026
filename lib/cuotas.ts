@@ -114,3 +114,50 @@ export function fechaHoraLocal(iso: string): string {
     .format(new Date(iso))
     .replace(",", "");
 }
+
+// ---------- H4: morosidad ----------
+
+export type FilaMorosidad = {
+  unidadId: string;
+  codigo: string;
+  torre: string;
+  cuotasVencidas: number;
+  saldoVencido: string;
+  vencimientoMasAntiguo: string; // AAAA-MM-DD
+  diasAtraso: number;
+};
+
+export type ListaMorosidad = {
+  datos: FilaMorosidad[];
+  total: number;
+  pagina: number;
+  tamanoPagina: number;
+};
+
+export type DetalleMorosidad = {
+  unidadId: string;
+  codigo: string;
+  cuotas: {
+    id: string;
+    periodo: string;
+    monto: string;
+    fechaVencimiento: string;
+    diasAtraso: number;
+  }[];
+};
+
+/** Torres presentes en la lista, sin repetir y en orden alfabético. */
+export function torresDe(filas: FilaMorosidad[]): string[] {
+  return [...new Set(filas.map((f) => f.torre))].sort((a, b) =>
+    a.localeCompare(b),
+  );
+}
+
+/** Suma de montos en centavos, para no acumular errores de punto flotante. */
+export function sumarMontos(montos: string[]): string {
+  const centavos = montos.reduce((total, monto) => {
+    const [entero, decimales = "0"] = monto.split(".");
+    return total + Number(entero) * 100 + Number(decimales.padEnd(2, "0").slice(0, 2));
+  }, 0);
+  return `${Math.floor(centavos / 100)}.${String(centavos % 100).padStart(2, "0")}`;
+}

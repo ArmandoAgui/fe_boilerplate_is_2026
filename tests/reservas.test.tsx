@@ -405,9 +405,10 @@ describe("permisos y fechas", () => {
       expect(!!screen.queryByRole("link", { name: "Mis reservas" })).toBe(
         rol === "RESIDENTE",
       );
-      expect(!!screen.queryByRole("link", { name: "Incidencias" })).toBe(
-        rol === "RESIDENTE",
-      );
+      const enlaceReporte = screen
+        .queryAllByRole("link", { name: "Incidencias" })
+        .some((enlace) => enlace.getAttribute("href") === "/incidencias/nueva");
+      expect(enlaceReporte).toBe(rol === "RESIDENTE");
     },
   );
   it("rango inclusivo 30 días y fechas reales", () => {

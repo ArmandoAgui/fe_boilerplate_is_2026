@@ -49,7 +49,7 @@ export function Navegacion({ rol }: { rol: Rol }) {
   return (
     <nav
       aria-label="Principal"
-      className="flex flex-wrap gap-4 text-sm font-medium"
+      className="default-navigation flex flex-wrap gap-4 text-sm font-medium"
     >
       <Link href="/">Inicio</Link>
       {rol !== "SEGURIDAD" && <Link href="/areas">Áreas comunes</Link>}
@@ -71,8 +71,10 @@ export function Navegacion({ rol }: { rol: Rol }) {
       )}
       {rol === "ADMINISTRADOR" && (
         <>
+          <Link href="/admin/incidencias">Incidencias</Link>
           <Link href="/admin/areas">Administrar áreas</Link>
           <Link href="/admin/cuotas/generar">Generar cuotas</Link>
+          <Link href="/admin/morosidad">Morosidad</Link>
           <Link href="/seguridad/presentes">Visitantes presentes</Link>
         </>
       )}

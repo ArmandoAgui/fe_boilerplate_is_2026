@@ -133,9 +133,7 @@ test("H9 requiere sesión y rol de residente", async ({ page }) => {
   await page.goto(ruta);
   await expect(page).toHaveURL(/\/login$/);
   await login(page, "admin");
-  await expect(
-    page.getByRole("link", { name: "Incidencias", exact: true }),
-  ).toHaveCount(0);
+  await expect(page.locator(`nav a[href="${ruta}"]`)).toHaveCount(0);
   await page.goto(ruta);
   await expect(
     page.getByText("No tienes permiso para ver esta página"),
