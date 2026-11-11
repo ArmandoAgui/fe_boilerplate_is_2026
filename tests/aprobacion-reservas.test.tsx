@@ -8,7 +8,7 @@ import { Navegacion } from "@/components/reservas/ui";
 import type { ListaReservas } from "@/lib/reservas";
 
 const navigation = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => navigation }));
+vi.mock("next/navigation", () => ({ useRouter: () => navigation, usePathname: () => "/" }));
 vi.mock("@/app/actions/reservas", () => ({
   aprobarReserva: vi.fn(),
   cancelarReserva: vi.fn(),

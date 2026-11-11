@@ -15,7 +15,7 @@ const enlaces = [
   { texto: "Incidencias", href: "/admin/incidencias", actual: true },
   { texto: "Visitantes presentes", href: "/seguridad/presentes" },
   { texto: "Asambleas" },
-  { texto: "Comunicados" },
+  { texto: "Comunicados", href: "/admin/comunicados" },
   { texto: "Reportes" },
 ];
 
