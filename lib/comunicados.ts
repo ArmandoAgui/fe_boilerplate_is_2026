@@ -53,3 +53,24 @@ export function fechaComunicado(iso: string) {
     timeStyle: "short",
   }).format(new Date(iso));
 }
+
+export type MiComunicado = {
+  id: string;
+  titulo: string;
+  alcance: Alcance;
+  creadoAt: string;
+  leido: boolean;
+};
+export type MisComunicados = {
+  datos: MiComunicado[];
+  total: number;
+  pagina: number;
+  tamanoPagina: number;
+};
+export type DetalleComunicado = {
+  id: string;
+  titulo: string;
+  contenido: string;
+  alcance: Alcance;
+  creadoAt: string;
+};
