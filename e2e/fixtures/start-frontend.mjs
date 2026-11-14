@@ -7,7 +7,7 @@ const child = spawn(
     stdio: "inherit",
     env: {
       ...process.env,
-      API_URL: "http://127.0.0.1:3100/api/v1",
+      API_URL: process.env.API_URL ?? "http://127.0.0.1:3100/api/v1",
       PORT: "3101",
     },
   },

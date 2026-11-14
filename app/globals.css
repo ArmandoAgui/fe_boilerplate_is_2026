@@ -261,4 +261,41 @@ nav.default-navigation a:hover {
     background: var(--success-soft);
     color: var(--success-text);
   }
+  .aviso-row {
+    @apply grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-3 gap-y-1 px-4 py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)_auto] sm:gap-x-4 sm:px-5;
+  }
+  .aviso-row time {
+    @apply col-start-2 row-start-2 sm:col-start-3 sm:row-start-1 sm:pt-1;
+  }
+  .aviso-icono {
+    @apply row-span-2 grid size-10 place-items-center self-start rounded-xl text-xs font-bold text-white;
+  }
+  .aviso-icono-paquetes { background: #43657b; }
+  .aviso-icono-comunicados { background: #2d6658; }
+  .aviso-icono-incidencias { background: #b23f35; }
+  .aviso-icono-asambleas { background: #76508d; }
+  .aviso-icono-cuotas { background: #98600e; }
+  .aviso-no-leida {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold;
+    background: #e5edf2;
+    color: #3e637a;
+  }
+  .aviso-leida {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium;
+    background: var(--surface-alt);
+    color: var(--muted);
+  }
+  :root[data-theme="dark"] .aviso-no-leida {
+    background: #344554;
+    color: #d2e7f4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root[data-theme="system"] .aviso-no-leida {
+      background: #344554;
+      color: #d2e7f4;
+    }
+  }
+  .nav-residente-lateral a {
+    @apply flex min-h-10 items-center whitespace-nowrap border-l-2 px-3 text-xs no-underline transition-colors lg:px-5;
+  }
 }
