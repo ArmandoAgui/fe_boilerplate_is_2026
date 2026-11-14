@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/actions/auth";
 import { ThemePicker } from "@/components/theme-provider";
+import { CampanaAvisos } from "@/components/notificaciones/campana";
 import { Navegacion } from "@/components/reservas/ui";
 import type { Usuario } from "@/lib/reservas";
 
@@ -37,6 +38,8 @@ export function EstructuraPlataforma({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const esResidente = usuario.rol === "RESIDENTE";
+  const enAvisos = esResidente && pathname === "/avisos";
   if (
     pathname === "/admin/incidencias" &&
     usuario.rol === "ADMINISTRADOR"
@@ -127,16 +130,79 @@ export function EstructuraPlataforma({
     );
   }
 
+  if (enAvisos) {
+    return (
+      <div className="flex min-h-screen flex-1 bg-background">
+        <aside className="hidden w-56 shrink-0 flex-col bg-[#20443d] text-white lg:flex">
+          <Link
+            href="/"
+            className="flex min-h-[5.5rem] flex-col justify-center border-b border-white/10 px-5 no-underline hover:bg-white/5"
+          >
+            <span className="text-lg font-semibold">Condominio</span>
+            <span className="text-xs text-white/65">Torres A y B</span>
+          </Link>
+          <div className="flex-1 overflow-y-auto">
+            <Navegacion rol={usuario.rol} actualHref={pathname} variante="lateral" />
+          </div>
+          <form action={logout} className="border-t border-white/10 p-3">
+            <button className="min-h-10 w-full rounded-lg px-3 text-left text-xs text-white/70 hover:bg-white/10 hover:text-white">
+              Cerrar sesión
+            </button>
+          </form>
+        </aside>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="border-b border-line bg-surface">
+            <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-6">
+              <p className="text-xs text-muted">
+                Inicio <span aria-hidden="true">/</span>{" "}
+                <span className="font-semibold text-foreground">Avisos</span>
+              </p>
+              <div className="flex items-center gap-3">
+                <CampanaAvisos />
+                <ThemePicker />
+                <span
+                  aria-hidden="true"
+                  className="grid size-9 place-items-center rounded-full bg-surface-alt text-xs font-semibold text-accent"
+                >
+                  {iniciales(usuario.nombre)}
+                </span>
+                <span className="hidden text-right sm:block">
+                  <span className="block text-sm font-semibold">{usuario.nombre}</span>
+                  <span className="block text-xs text-muted">Residente</span>
+                </span>
+                <form action={logout} className="sm:hidden">
+                  <button className="button-secondary min-h-9 px-3 py-1 text-xs">Salir</button>
+                </form>
+              </div>
+            </div>
+            <div className="border-t border-white/10 bg-[#20443d] px-2 lg:hidden">
+              <div className="overflow-x-auto py-1">
+                <Navegacion rol={usuario.rol} actualHref={pathname} variante="lateral" />
+              </div>
+            </div>
+          </header>
+          <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            {children}
+          </main>
+          <footer className="px-4 py-5 text-center text-xs text-muted sm:px-6">
+            Horarios de El Salvador · UTC−6
+          </footer>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <header className="site-header">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5 px-5 py-5">
           <div>
             <p className="mb-3 text-lg font-semibold">Nuestra comunidad</p>
-            <Navegacion rol={usuario.rol} />
+            <Navegacion rol={usuario.rol} actualHref={pathname} />
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <span className="text-muted">{usuario.nombre}</span>
+            {esResidente && <CampanaAvisos />}
             <ThemePicker />
             <form action={logout}>
               <button className="button-secondary">Cerrar sesión</button>

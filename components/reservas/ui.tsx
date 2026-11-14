@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { EnlaceIncidencias } from "@/components/incidencias/enlace-incidencias";
 import type { Area, Rol } from "@/lib/reservas";
 export function SinPermiso() {
   return (
@@ -45,7 +44,61 @@ export function Catalogo({ areas }: { areas: Area[] }) {
     </div>
   );
 }
-export function Navegacion({ rol }: { rol: Rol }) {
+const enlacesResidente = [
+  { texto: "Inicio", href: "/" },
+  { texto: "Áreas comunes", href: "/areas" },
+  { texto: "Mis reservas", href: "/reservas" },
+  { texto: "Nueva reserva", href: "/reservas/nueva" },
+  { texto: "Mis visitantes", href: "/visitas" },
+  { texto: "Mis paquetes", href: "/paquetes" },
+  { texto: "Asambleas", href: "/asambleas" },
+  { texto: "Incidencias", href: "/incidencias/nueva" },
+  { texto: "Estado de cuenta", href: "/cuotas" },
+  { texto: "Avisos", href: "/avisos" },
+];
+
+export function Navegacion({
+  rol,
+  actualHref,
+  variante = "default",
+}: {
+  rol: Rol;
+  actualHref?: string;
+  variante?: "default" | "lateral";
+}) {
+  if (rol === "RESIDENTE")
+    return (
+      <nav
+        aria-label="Principal"
+        className={
+          variante === "lateral"
+            ? "nav-residente-lateral flex min-w-max gap-1 p-2 lg:min-w-0 lg:flex-col lg:gap-0 lg:px-0 lg:py-3"
+            : "default-navigation flex flex-wrap gap-4 text-sm font-medium"
+        }
+      >
+        {enlacesResidente.map((enlace) => {
+          const actual = actualHref === enlace.href || actualHref?.startsWith(`${enlace.href}/`);
+          const estiloLateral = variante === "lateral";
+          return (
+            <Link
+              key={enlace.href}
+              href={enlace.href}
+              aria-current={actual ? "page" : undefined}
+              className={
+                estiloLateral
+                  ? `flex min-h-10 items-center whitespace-nowrap border-l-2 px-3 text-xs no-underline transition-colors lg:px-5 ${actual ? "border-amber-300 bg-white/10 font-semibold text-white" : "border-transparent text-white/75 hover:bg-white/5 hover:text-white"}`
+                  : actual
+                    ? "border-b-accent! font-semibold text-accent"
+                    : undefined
+              }
+            >
+              {enlace.texto}
+            </Link>
+          );
+        })}
+      </nav>
+    );
+
   return (
     <nav
       aria-label="Principal"
@@ -53,17 +106,6 @@ export function Navegacion({ rol }: { rol: Rol }) {
     >
       <Link href="/">Inicio</Link>
       {rol !== "SEGURIDAD" && <Link href="/areas">Áreas comunes</Link>}
-      {rol === "RESIDENTE" && (
-        <>
-          <Link href="/reservas">Mis reservas</Link>
-          <Link href="/reservas/nueva">Nueva reserva</Link>
-          <Link href="/visitas">Mis visitantes</Link>
-          <Link href="/paquetes">Mis paquetes</Link>
-          <Link href="/asambleas">Asambleas</Link>
-          <EnlaceIncidencias />
-          <Link href="/cuotas">Estado de cuenta</Link>
-        </>
-      )}
       {rol === "SEGURIDAD" && (
         <>
           <Link href="/seguridad/accesos">Control de accesos</Link>
