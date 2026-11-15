@@ -55,6 +55,7 @@ const enlacesResidente = [
   { texto: "Incidencias", href: "/incidencias/nueva" },
   { texto: "Estado de cuenta", href: "/cuotas" },
   { texto: "Avisos", href: "/avisos" },
+    { texto: "Directorio", href: "/directorio/preferencias" },
 ];
 
 export function Navegacion({
