@@ -55,7 +55,8 @@ const enlacesResidente = [
   { texto: "Incidencias", href: "/incidencias/nueva" },
   { texto: "Estado de cuenta", href: "/cuotas" },
   { texto: "Avisos", href: "/avisos" },
-    { texto: "Directorio", href: "/directorio/preferencias" },
+  { texto: "Directorio", href: "/directorio" },
+  { texto: "Mi privacidad", href: "/directorio/preferencias" },
 ];
 
 export function Navegacion({
@@ -124,7 +125,7 @@ export function Navegacion({
           <Link href="/admin/morosidad">Morosidad</Link>
           <Link href="/seguridad/presentes">Visitantes presentes</Link>
           <Link href="/admin/asambleas/nueva">Convocar asamblea</Link>
-         <Link href="/asambleas">Asambleas</Link>
+          <Link href="/asambleas">Asambleas</Link>
         </>
       )}
     </nav>
