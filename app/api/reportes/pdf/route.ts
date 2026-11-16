@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   if (!base) return new Response("Servicio no disponible", { status: 503 });
   const r = await fetch(
     new URL(
-      `administracion/reportes/pdf?${new URLSearchParams({ desde, hasta })}`,
+      `reportes/administrativos/pdf?${new URLSearchParams({ desde, hasta })}`,
       base.replace(/\/?$/, "/"),
     ),
     {

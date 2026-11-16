@@ -1,6 +1,6 @@
 # Frontend de producción con Docker
 
-Esta entrega depende del backend y su orquestación de despliegue (`feature/docker-plataforma-ubuntu`). Ambos PR se encadenan a los PR de integración del Product Owner; no se publica automáticamente develop ni se hace merge.
+Esta entrega depende del backend y su orquestación de despliegue (`feature/docker-plataforma-ubuntu`). Ambos PR se encadenan a la actualización de Heber (backend #39/frontend #34), sobre los PR de integración del Product Owner; no se publica automáticamente develop ni se hace merge.
 
 ## Decisiones
 
