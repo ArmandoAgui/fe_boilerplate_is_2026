@@ -115,6 +115,84 @@ export function fechaHoraLocal(iso: string): string {
     .replace(",", "");
 }
 
+// ---------- H2: pago de cuota ----------
+
+export type EstadoPago = "APROBADO" | "RECHAZADO";
+
+export type Pago = {
+  id: string;
+  referencia: string; // PAG-AAAAMMDD-000001
+  estado: EstadoPago;
+  cuotaId: string;
+  concepto: string;
+  monto: string;
+  ultimos4: string;
+  fecha: string; // ISO
+  motivoRechazo: string | null;
+};
+
+export const etiquetaEstadoPago: Record<EstadoPago, string> = {
+  APROBADO: "Aprobado",
+  RECHAZADO: "Rechazado",
+};
+
+export const colorEstadoPago: Record<EstadoPago, string> = {
+  APROBADO: "#16a34a",
+  RECHAZADO: "#dc2626",
+};
+
+/** Datos tal como los escribe el residente; la tarjeta va sin espacios. */
+export type DatosTarjeta = {
+  numeroTarjeta: string;
+  titular: string;
+  vencimiento: string; // MM/AA
+  cvv: string;
+};
+
+export type CampoTarjeta = keyof DatosTarjeta;
+
+/**
+ * Mismas reglas y textos que CrearPagoDto del backend, para avisar bajo cada
+ * campo antes de enviar. El backend vuelve a validar todo.
+ */
+export function erroresTarjeta(
+  datos: DatosTarjeta,
+  mesActual: string,
+): Partial<Record<CampoTarjeta, string>> {
+  const errores: Partial<Record<CampoTarjeta, string>> = {};
+  if (!/^\d{16}$/.test(datos.numeroTarjeta))
+    errores.numeroTarjeta = "El número de tarjeta debe tener 16 dígitos";
+  const titular = datos.titular.trim().length;
+  if (titular < 3 || titular > 60)
+    errores.titular = "El titular debe tener entre 3 y 60 caracteres";
+  const vence = /^(0[1-9]|1[0-2])\/(\d{2})$/.exec(datos.vencimiento);
+  if (!vence) errores.vencimiento = "Use el formato MM/AA";
+  // "AAAA-MM" se compara bien como texto: 2026-10 < 2026-11.
+  else if (`20${vence[2]}-${vence[1]}` < mesActual)
+    errores.vencimiento = "La tarjeta está vencida";
+  if (!/^\d{3}$/.test(datos.cvv))
+    errores.cvv = "El código de seguridad debe tener 3 dígitos";
+  return errores;
+}
+
+/** Deja solo dígitos, como máximo `maximo`. */
+export function soloDigitos(valor: string, maximo: number): string {
+  return valor.replace(/\D/g, "").slice(0, maximo);
+}
+
+/** "4242424242424242" → "4242 4242 4242 4242", solo para mostrar. */
+export function agruparTarjeta(digitos: string): string {
+  return digitos.replace(/(\d{4})(?=\d)/g, "$1 ");
+}
+
+/** "1228" → "12/28": agrega la barra mientras se escribe. */
+export function formatoVencimiento(valor: string): string {
+  const digitos = soloDigitos(valor, 4);
+  return digitos.length > 2
+    ? `${digitos.slice(0, 2)}/${digitos.slice(2)}`
+    : digitos;
+}
+
 // ---------- H4: morosidad ----------
 
 export type FilaMorosidad = {

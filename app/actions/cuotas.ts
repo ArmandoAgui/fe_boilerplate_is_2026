@@ -2,7 +2,9 @@
 import { revalidatePath } from "next/cache";
 import { api, ApiError } from "@/lib/api";
 import type {
+  DatosTarjeta,
   DetalleMorosidad,
+  Pago,
   PreviaGeneracion,
   ResultadoGeneracion,
 } from "@/lib/cuotas";
@@ -56,6 +58,25 @@ export async function obtenerDetalleMorosidad(
     const datos = await api<DetalleMorosidad>(
       `administracion/morosidad/${encodeURIComponent(unidadId)}`,
     );
+    return { datos };
+  } catch (error) {
+    return fallo(error);
+  }
+}
+
+/**
+ * H2: envía el pago a la pasarela simulada (tarda unos 2 segundos).
+ * Un rechazo de la pasarela no es un error HTTP: llega como pago RECHAZADO.
+ */
+export async function pagarCuota(
+  pago: DatosTarjeta & { cuotaId: string; idempotencyKey: string },
+): Promise<Resultado<Pago>> {
+  try {
+    const datos = await api<Pago>("pagos", {
+      method: "POST",
+      body: JSON.stringify(pago),
+    });
+    revalidatePath("/cuotas");
     return { datos };
   } catch (error) {
     return fallo(error);
