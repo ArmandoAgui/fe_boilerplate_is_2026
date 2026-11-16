@@ -50,12 +50,19 @@ export default async function Page({
         titulo="Detalle de cuota"
         detalle={`${cuota.concepto}, período ${cuota.periodo}.`}
         accion={
-          <Link
-            className="button-secondary"
-            href={`/cuotas?unidadId=${cuota.unidadId}`}
-          >
-            Volver al estado de cuenta
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            {cuota.estado !== "PAGADA" && (
+              <Link className="button" href={`/cuotas/${cuota.id}/pagar`}>
+                Pagar {dinero(cuota.monto)}
+              </Link>
+            )}
+            <Link
+              className="button-secondary"
+              href={`/cuotas?unidadId=${cuota.unidadId}`}
+            >
+              Volver al estado de cuenta
+            </Link>
+          </div>
         }
       />
       <dl className="panel grid max-w-2xl gap-4 sm:grid-cols-2">

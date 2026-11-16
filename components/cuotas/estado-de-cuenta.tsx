@@ -166,7 +166,16 @@ export function EstadoDeCuenta({
                     <td className="p-4">
                       <EstadoCuotaBadge estado={c.estado} />
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-4 text-right whitespace-nowrap">
+                      {c.estado !== "PAGADA" && (
+                        <Link
+                          className="mr-4 font-semibold underline"
+                          href={`/cuotas/${c.id}/pagar`}
+                          aria-label={`Pagar la cuota ${c.periodo}`}
+                        >
+                          Pagar
+                        </Link>
+                      )}
                       <Link
                         className="underline"
                         href={`/cuotas/${c.id}`}
