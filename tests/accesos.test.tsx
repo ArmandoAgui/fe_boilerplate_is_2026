@@ -175,59 +175,39 @@ describe("Control de accesos", () => {
     ).toBeTruthy();
   });
 
-  it("valida los tres campos de una visita sin autorización", async () => {
+  it("impide registrar directamente una visita que no tiene confirmación", async () => {
     pantalla();
     fireEvent.click(
       screen.getByRole("button", { name: "Visita sin autorización" }),
     );
-    fireEvent.click(
-      screen.getByRole("button", { name: "Registrar entrada" }),
-    );
     expect(
-      await screen.findByText(
-        "El nombre debe tener entre 3 y 100 caracteres",
-      ),
-    ).toBeTruthy();
+      screen.getByRole("button", { name: "Solicitar confirmación" }),
+    ).toBeDisabled();
     expect(
-      screen.getByText(
-        "El documento debe tener de 5 a 20 caracteres alfanuméricos",
-      ),
-    ).toBeTruthy();
-    expect(screen.getByText("Seleccione una unidad de destino")).toBeTruthy();
+      screen.queryByRole("button", { name: "Registrar entrada" }),
+    ).not.toBeInTheDocument();
     expect(registrarEntrada).not.toHaveBeenCalled();
   });
-
-  it("registra una visita sin autorización con los tres datos", async () => {
-    vi.mocked(registrarEntrada).mockResolvedValue({
-      ok: true,
-      nombre: "Pedro Castillo",
-    });
+  it("solicita confirmación a un residente elegido de la unidad", async () => {
     pantalla();
     fireEvent.click(
       screen.getByRole("button", { name: "Visita sin autorización" }),
     );
-    fireEvent.change(screen.getByLabelText("Nombre del visitante"), {
-      target: { value: "Pedro Castillo" },
-    });
-    fireEvent.change(screen.getByLabelText("Documento"), {
-      target: { value: "023456789" },
-    });
-    fireEvent.change(screen.getByLabelText("Unidad de destino"), {
+    fireEvent.change(screen.getByLabelText("Unidad"), {
       target: { value: "u2" },
     });
+    await screen.findByRole("option", { name: "Ana Perez" });
+    fireEvent.change(screen.getByLabelText("Residente que confirma"), {
+      target: { value: "r1" },
+    });
+    fireEvent.change(screen.getByLabelText("Nombre y apellido del visitante"), {
+      target: { value: "Pedro Castillo" },
+    });
     fireEvent.click(
-      screen.getByRole("button", { name: "Registrar entrada" }),
+      screen.getByRole("button", { name: "Solicitar confirmación" }),
     );
-    await waitFor(() =>
-      expect(registrarEntrada).toHaveBeenCalledWith({
-        visitanteNombre: "Pedro Castillo",
-        visitanteDocumento: "023456789",
-        unidadId: "u2",
-      }),
-    );
-    expect(
-      await screen.findByText(/Entrada registrada · Pedro Castillo/),
-    ).toBeTruthy();
+    expect(await screen.findByText(/Solicitud enviada/)).toBeInTheDocument();
+    expect(registrarEntrada).not.toHaveBeenCalled();
   });
 
   it("avisa cuando no hay nadie dentro", () => {
@@ -262,3 +242,10 @@ describe("Control de accesos", () => {
     expect(navigation.refresh).toHaveBeenCalled();
   });
 });
+
+vi.mock("@/app/actions/integracion", () => ({
+  operacion: vi.fn().mockResolvedValue({ ok: true }),
+  cargarResidentes: vi
+    .fn()
+    .mockResolvedValue({ datos: [{ id: "r1", nombre: "Ana Perez" }] }),
+}));

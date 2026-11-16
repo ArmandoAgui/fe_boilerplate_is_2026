@@ -11,13 +11,18 @@ import type { Usuario } from "@/lib/reservas";
 const enlaces = [
   { texto: "Inicio", href: "/" },
   { texto: "Generar cuotas", href: "/admin/cuotas/generar" },
-  { texto: "Morosidad" },
+  { texto: "Morosidad", href: "/admin/morosidad" },
   { texto: "Áreas comunes", href: "/admin/areas" },
   { texto: "Incidencias", href: "/admin/incidencias", actual: true },
   { texto: "Visitantes presentes", href: "/seguridad/presentes" },
-  { texto: "Asambleas" },
+  { texto: "Asambleas", href: "/asambleas" },
   { texto: "Comunicados", href: "/admin/comunicados" },
-  { texto: "Reportes" },
+  { texto: "Reportes", href: "/admin/reportes" },
+  { texto: "Residentes y unidades", href: "/admin/residentes" },
+  { texto: "Ajustar cuotas", href: "/admin/cuotas" },
+  { texto: "Aprobar reservas", href: "/admin/reservas" },
+  { texto: "Paquetería", href: "/seguridad/paquetes" },
+  { texto: "Directorio", href: "/directorio" },
 ];
 
 function iniciales(nombre: string) {
@@ -40,29 +45,33 @@ export function EstructuraPlataforma({
   const pathname = usePathname();
   const esResidente = usuario.rol === "RESIDENTE";
   const enAvisos = esResidente && pathname === "/avisos";
-  if (
-    pathname === "/admin/incidencias" &&
-    usuario.rol === "ADMINISTRADOR"
-  ) {
+  if (pathname === "/admin/incidencias" && usuario.rol === "ADMINISTRADOR") {
     return (
       <div className="flex min-h-screen flex-1 flex-col lg:flex-row">
-        <aside className="flex w-full shrink-0 flex-col bg-[#20443d] text-white lg:min-h-screen lg:w-48">
+        <aside className="flex w-full shrink-0 flex-col bg-[#30373f] text-slate-100 lg:min-h-screen lg:w-48">
           <Link
             href="/"
             className="flex min-h-16 flex-col justify-center border-b border-white/10 px-5 py-3 no-underline hover:bg-white/5"
           >
             <span className="text-base font-semibold">Condominio</span>
-            <span className="text-xs text-white/65">Torres A y B</span>
+            <span className="text-xs text-slate-100/65">Torres A y B</span>
           </Link>
-          <nav aria-label="Navegación administrativa" className="flex-1 overflow-x-auto lg:overflow-visible">
+          <nav
+            aria-label="Navegación administrativa"
+            className="flex-1 overflow-x-auto lg:overflow-visible"
+          >
             <div className="flex min-w-max gap-1 p-2 lg:min-w-0 lg:flex-col lg:gap-0 lg:px-0 lg:py-3">
               {enlaces.map((enlace, indice) => {
                 const grupo = indice === 1 || indice === 3 || indice === 8;
                 return (
                   <div key={enlace.texto} className="lg:contents">
                     {grupo && (
-                      <p className="hidden px-5 pb-1 pt-3 text-[10px] uppercase tracking-wider text-white/50 lg:block">
-                        {indice === 1 ? "Cuotas" : indice === 3 ? "Operación" : "Análisis"}
+                      <p className="hidden px-5 pb-1 pt-3 text-[10px] uppercase tracking-wider text-slate-100/50 lg:block">
+                        {indice === 1
+                          ? "Cuotas"
+                          : indice === 3
+                            ? "Operación"
+                            : "Análisis"}
                       </p>
                     )}
                     {enlace.href ? (
@@ -72,8 +81,8 @@ export function EstructuraPlataforma({
                         className={
                           "flex min-h-10 items-center whitespace-nowrap border-l-2 px-3 text-xs no-underline transition-colors lg:px-5 " +
                           (enlace.actual
-                            ? "border-amber-300 bg-white/10 font-semibold text-white"
-                            : "border-transparent text-white/75 hover:bg-white/5 hover:text-white")
+                            ? "border-amber-300 bg-white/10 font-semibold text-slate-100"
+                            : "border-transparent text-slate-100/75 hover:bg-white/5 hover:text-slate-100")
                         }
                       >
                         {enlace.texto}
@@ -81,7 +90,7 @@ export function EstructuraPlataforma({
                     ) : (
                       <span
                         aria-disabled="true"
-                        className="flex min-h-10 items-center whitespace-nowrap border-l-2 border-transparent px-3 text-xs text-white/40 lg:px-5"
+                        className="flex min-h-10 items-center whitespace-nowrap border-l-2 border-transparent px-3 text-xs text-slate-100/40 lg:px-5"
                       >
                         {enlace.texto}
                       </span>
@@ -91,8 +100,11 @@ export function EstructuraPlataforma({
               })}
             </div>
           </nav>
-          <form action={logout} className="hidden border-t border-white/10 p-3 lg:block">
-            <button className="min-h-10 w-full rounded-lg px-3 text-left text-xs text-white/70 hover:bg-white/10 hover:text-white">
+          <form
+            action={logout}
+            className="hidden border-t border-white/10 p-3 lg:block"
+          >
+            <button className="min-h-10 w-full rounded-lg px-3 text-left text-xs text-slate-100/70 hover:bg-white/10 hover:text-slate-100">
               Cerrar sesión
             </button>
           </form>
@@ -112,7 +124,9 @@ export function EstructuraPlataforma({
                 {iniciales(usuario.nombre)}
               </span>
               <span className="hidden text-right sm:block">
-                <span className="block text-sm font-semibold">{usuario.nombre}</span>
+                <span className="block text-sm font-semibold">
+                  {usuario.nombre}
+                </span>
                 <span className="block text-xs text-muted">Administrador</span>
               </span>
               <form action={logout} className="lg:hidden">
@@ -133,19 +147,23 @@ export function EstructuraPlataforma({
   if (enAvisos) {
     return (
       <div className="flex min-h-screen flex-1 bg-background">
-        <aside className="hidden w-56 shrink-0 flex-col bg-[#20443d] text-white lg:flex">
+        <aside className="hidden w-56 shrink-0 flex-col bg-[#30373f] text-slate-100 lg:flex">
           <Link
             href="/"
             className="flex min-h-[5.5rem] flex-col justify-center border-b border-white/10 px-5 no-underline hover:bg-white/5"
           >
             <span className="text-lg font-semibold">Condominio</span>
-            <span className="text-xs text-white/65">Torres A y B</span>
+            <span className="text-xs text-slate-100/65">Torres A y B</span>
           </Link>
           <div className="flex-1 overflow-y-auto">
-            <Navegacion rol={usuario.rol} actualHref={pathname} variante="lateral" />
+            <Navegacion
+              rol={usuario.rol}
+              actualHref={pathname}
+              variante="lateral"
+            />
           </div>
           <form action={logout} className="border-t border-white/10 p-3">
-            <button className="min-h-10 w-full rounded-lg px-3 text-left text-xs text-white/70 hover:bg-white/10 hover:text-white">
+            <button className="min-h-10 w-full rounded-lg px-3 text-left text-xs text-slate-100/70 hover:bg-white/10 hover:text-slate-100">
               Cerrar sesión
             </button>
           </form>
@@ -167,17 +185,25 @@ export function EstructuraPlataforma({
                   {iniciales(usuario.nombre)}
                 </span>
                 <span className="hidden text-right sm:block">
-                  <span className="block text-sm font-semibold">{usuario.nombre}</span>
+                  <span className="block text-sm font-semibold">
+                    {usuario.nombre}
+                  </span>
                   <span className="block text-xs text-muted">Residente</span>
                 </span>
                 <form action={logout} className="sm:hidden">
-                  <button className="button-secondary min-h-9 px-3 py-1 text-xs">Salir</button>
+                  <button className="button-secondary min-h-9 px-3 py-1 text-xs">
+                    Salir
+                  </button>
                 </form>
               </div>
             </div>
-            <div className="border-t border-white/10 bg-[#20443d] px-2 lg:hidden">
+            <div className="border-t border-white/10 bg-[#30373f] px-2 lg:hidden">
               <div className="overflow-x-auto py-1">
-                <Navegacion rol={usuario.rol} actualHref={pathname} variante="lateral" />
+                <Navegacion
+                  rol={usuario.rol}
+                  actualHref={pathname}
+                  variante="lateral"
+                />
               </div>
             </div>
           </header>

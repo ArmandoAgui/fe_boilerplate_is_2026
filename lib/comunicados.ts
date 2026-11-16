@@ -21,7 +21,7 @@ export type ComunicadoAdmin = {
   alcance: Alcance;
   destino: string | null;
   creadoAt: string;
-  leidoPor: number;
+  leidoPor?: number; // Compatibilidad con datos históricos; no se exige lectura.
   destinatarios: number;
 };
 export type ListaComunicadosAdmin = {
@@ -53,3 +53,24 @@ export function fechaComunicado(iso: string) {
     timeStyle: "short",
   }).format(new Date(iso));
 }
+
+export type MiComunicado = {
+  id: string;
+  titulo: string;
+  alcance: Alcance;
+  creadoAt: string;
+  leido?: boolean; // Compatibilidad con fixtures anteriores.
+};
+export type MisComunicados = {
+  datos: MiComunicado[];
+  total: number;
+  pagina: number;
+  tamanoPagina: number;
+};
+export type DetalleComunicado = {
+  id: string;
+  titulo: string;
+  contenido: string;
+  alcance: Alcance;
+  creadoAt: string;
+};

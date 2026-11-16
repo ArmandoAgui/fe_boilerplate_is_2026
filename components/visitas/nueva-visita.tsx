@@ -31,7 +31,7 @@ export function NuevaVisita({ unidades }: { unidades: Unidad[] }) {
   const errNombre = nombre ? errorNombre(nombre) : "";
   const errDocumento = documento ? errorDocumento(documento) : "";
   const errVigencia = errorVigencia(inicio, fin, ahora);
-  const completo = Boolean(unidadId && nombre && documento && inicio && fin);
+  const completo = Boolean(unidadId && nombre && inicio && fin);
   const invalido =
     !completo || Boolean(errNombre || errDocumento || errVigencia);
 
@@ -48,7 +48,7 @@ export function NuevaVisita({ unidades }: { unidades: Unidad[] }) {
       const result = await crearAutorizacion({
         unidadId,
         visitanteNombre: nombre.trim(),
-        visitanteDocumento: documento,
+        ...(documento ? { visitanteDocumento: documento } : {}),
         inicio: aISO(inicio),
         fin: aISO(fin),
       });
@@ -97,13 +97,12 @@ export function NuevaVisita({ unidades }: { unidades: Unidad[] }) {
         </div>
 
         <div>
-          <label htmlFor="visitante-documento">Documento</label>
+          <label htmlFor="visitante-documento">Documento (opcional)</label>
           <input
             id="visitante-documento"
             className={campo(Boolean(errDocumento))}
             value={documento}
             onChange={(e) => setDocumento(e.target.value)}
-            required
             aria-invalid={Boolean(errDocumento)}
             aria-describedby="visitante-documento-ayuda visitante-documento-error"
           />
@@ -193,7 +192,8 @@ export function NuevaVisita({ unidades }: { unidades: Unidad[] }) {
         className="reservation-summary mt-6 border-l-4"
         style={{ borderLeftColor: "#2563eb" }}
       >
-        Vigencia máxima: 24 horas. La autorización sirve para un solo ingreso.
+        Vigencia máxima: 24 horas. La autorización permite múltiples ingresos
+        durante su vigencia.
       </p>
 
       <div className="mt-6 flex flex-wrap gap-3">

@@ -7,12 +7,7 @@ import {
   SinPermiso,
   TituloCuotas,
 } from "@/components/cuotas/ui";
-import {
-  dinero,
-  fechaCorta,
-  mesLocal,
-  type DetalleCuota,
-} from "@/lib/cuotas";
+import { dinero, fechaCorta, mesLocal, type DetalleCuota } from "@/lib/cuotas";
 
 export default async function Page({
   params,
@@ -37,7 +32,9 @@ export default async function Page({
   const resumen: [string, React.ReactNode][] = [
     ["Concepto", cuota.concepto],
     ["Período", cuota.periodo],
-    ["Monto", dinero(cuota.monto)],
+    ["Monto base", dinero(cuota.montoBase ?? cuota.monto)],
+    ["Recargo", dinero(cuota.recargo ?? "0.00")],
+    ["Total", dinero(cuota.monto)],
     ["Vencimiento", fechaCorta(cuota.fechaVencimiento)],
     ["Estado", <EstadoCuotaBadge key="estado" estado={cuota.estado} />],
   ];
@@ -63,10 +60,13 @@ export default async function Page({
           </dl>
         </section>
 
-        {cuota.estado === "PAGADA" ? (
+        {["PAGADA", "ANULADA"].includes(cuota.estado) ? (
           <section className="panel">
             <p className="font-medium">Esta cuota ya está pagada.</p>
-            <Link className="button-secondary mt-4" href={`/cuotas/${cuota.id}`}>
+            <Link
+              className="button-secondary mt-4"
+              href={`/cuotas/${cuota.id}`}
+            >
               Ver detalle de la cuota
             </Link>
           </section>

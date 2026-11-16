@@ -1,6 +1,14 @@
-export type Paquete = PaqueteRegistrado & { entregadoAt: string | null; retiraNombre: string | null };
-export type ListaPaquetes={datos:Paquete[];total:number;pagina:number;tamanoPagina:number};
-export type EstadoPaquete = "PENDIENTE" | "ENTREGADO";
+export type Paquete = PaqueteRegistrado & {
+  entregadoAt: string | null;
+  retiraNombre: string | null;
+};
+export type ListaPaquetes = {
+  datos: Paquete[];
+  total: number;
+  pagina: number;
+  tamanoPagina: number;
+};
+export type EstadoPaquete = "PENDIENTE" | "ENTREGADO" | "ANULADO";
 
 export type UnidadOpcion = { id: string; codigo: string; torre: string };
 

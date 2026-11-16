@@ -37,6 +37,10 @@ export type IncidenciaDetalle = {
   residente?: string | { nombre?: string };
   creadoPor?: string | { nombre?: string };
   historial?: {
+    campo?: string;
+    valorAnterior?: string | null;
+    valorNuevo?: string;
+    actor?: string;
     estado?: string;
     fecha?: string;
     creadaAt?: string;

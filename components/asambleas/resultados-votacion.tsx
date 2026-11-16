@@ -1,7 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { obtenerResultados } from "@/app/actions/asamblea";
-import { fechaHora, porcentaje1, type ResultadosTema, type Tema } from "@/lib/asambleas";
+import {
+  fechaHora,
+  porcentaje1,
+  type ResultadosTema,
+  type Tema,
+} from "@/lib/asambleas";
 
 const AVISO = "Los resultados estarán disponibles al cierre de la votación";
 
@@ -30,7 +35,8 @@ export function ResultadosVotacion({ temas }: { temas: Tema[] }) {
         setCarga({
           temaId,
           tipo: "error",
-          mensaje: r.error ?? "No se pudo completar la operación. Intente de nuevo.",
+          mensaje:
+            r.error ?? "No se pudo completar la operación. Intente de nuevo.",
         });
     });
     return () => {
@@ -38,7 +44,8 @@ export function ResultadosVotacion({ temas }: { temas: Tema[] }) {
     };
   }, [temaId, cerrado, intento]);
 
-  if (!temas.length) return <p className="panel">Esta asamblea no tiene temas</p>;
+  if (!temas.length)
+    return <p className="panel">Esta asamblea no tiene temas</p>;
 
   const actual = carga?.temaId === temaId ? carga : null;
   const aviso = !cerrado || actual?.tipo === "abierto";
@@ -78,7 +85,11 @@ export function ResultadosVotacion({ temas }: { temas: Tema[] }) {
       {actual?.tipo === "error" && (
         <div role="alert" className="panel">
           <p>{actual.mensaje}</p>
-          <button type="button" className="button-secondary mt-3" onClick={reintentar}>
+          <button
+            type="button"
+            className="button-secondary mt-3"
+            onClick={reintentar}
+          >
             Reintentar
           </button>
         </div>
@@ -100,32 +111,54 @@ export function ResultadosVotacion({ temas }: { temas: Tema[] }) {
                 <caption className="sr-only">Resultados por opción</caption>
                 <thead>
                   <tr className="border-b border-line">
-                    <th scope="col" className="py-2 pr-4">Opción</th>
-                    <th scope="col" className="py-2 pr-4 text-right">Votos</th>
-                    <th scope="col" className="py-2 text-right">Porcentaje</th>
+                    <th scope="col" className="py-2 pr-4">
+                      Opción
+                    </th>
+                    <th scope="col" className="py-2 pr-4 text-right">
+                      Votos
+                    </th>
+                    <th scope="col" className="py-2 text-right">
+                      Porcentaje
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {actual.datos.opciones.map((o) => (
-                    <tr key={o.opcionId} className="border-b border-line align-top">
+                    <tr
+                      key={o.opcionId}
+                      className="border-b border-line align-top"
+                    >
                       <td className="w-full py-2 pr-4">
                         <span>{o.texto}</span>
-                        <div aria-hidden="true" className="mt-1 h-2 w-full rounded bg-surface-alt">
+                        <div
+                          aria-hidden="true"
+                          className="mt-1 h-2 w-full rounded bg-surface-alt"
+                        >
                           <div
                             className="h-2 rounded bg-accent"
-                            style={{ width: `${Math.min(100, Math.max(0, o.porcentaje))}%` }}
+                            style={{
+                              width: `${Math.min(100, Math.max(0, o.porcentaje))}%`,
+                            }}
                           />
                         </div>
                       </td>
-                      <td className="py-2 pr-4 text-right tabular-nums">{o.votos}</td>
-                      <td className="py-2 text-right tabular-nums">{porcentaje1(o.porcentaje)}</td>
+                      <td className="py-2 pr-4 text-right tabular-nums">
+                        {o.votos}
+                      </td>
+                      <td className="py-2 text-right tabular-nums">
+                        {porcentaje1(o.porcentaje)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
                   <tr className="font-semibold">
-                    <th scope="row" className="py-2 pr-4">Total</th>
-                    <td className="py-2 pr-4 text-right tabular-nums">{actual.datos.totalVotos}</td>
+                    <th scope="row" className="py-2 pr-4">
+                      Total
+                    </th>
+                    <td className="py-2 pr-4 text-right tabular-nums">
+                      {actual.datos.totalVotos}
+                    </td>
                     <td className="py-2 text-right tabular-nums">
                       {porcentaje1(actual.datos.totalVotos > 0 ? 100 : 0)}
                     </td>
@@ -140,21 +173,32 @@ export function ResultadosVotacion({ temas }: { temas: Tema[] }) {
               Unidades que votaron
             </h2>
             {actual.datos.unidadesVotantes.length === 0 ? (
-              <p className="mt-2 text-muted">Ninguna unidad votó en este tema</p>
+              <p className="mt-2 text-muted">
+                Ninguna unidad votó en este tema
+              </p>
             ) : (
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-line">
-                      <th scope="col" className="py-2 pr-4">Unidad</th>
-                      <th scope="col" className="py-2">Fecha y hora</th>
+                      <th scope="col" className="py-2 pr-4">
+                        Unidad
+                      </th>
+                      <th scope="col" className="py-2">
+                        Fecha y hora
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {actual.datos.unidadesVotantes.map((u) => (
                       <tr key={u.unidadId} className="border-b border-line">
                         <td className="py-2 pr-4">{u.codigo}</td>
-                        <td className="py-2">{fechaHora(u.fecha)}</td>
+                        <td className="py-2">
+                          {fechaHora(u.fecha)}
+                          {u.opcion
+                            ? ` · Opción: ${u.opcion}`
+                            : " · Opción no registrada en votos históricos"}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

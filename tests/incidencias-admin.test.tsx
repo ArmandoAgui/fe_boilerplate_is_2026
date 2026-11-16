@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { AdministrarIncidencias } from "@/components/incidencias/administrar-incidencias";
 import { guardarAsignacionIncidencia } from "@/app/actions/incidencias-admin";
 import type {
@@ -43,7 +49,9 @@ const responsables = [
   },
 ];
 
-function pantalla(props: Partial<React.ComponentProps<typeof AdministrarIncidencias>> = {}) {
+function pantalla(
+  props: Partial<React.ComponentProps<typeof AdministrarIncidencias>> = {},
+) {
   return render(
     <AdministrarIncidencias
       incidencias={lista}
@@ -63,18 +71,23 @@ beforeEach(() => {
 describe("H10: priorizar y asignar incidencias", () => {
   it("muestra filtros, fila seleccionada y los valores nulos del listado", () => {
     pantalla();
-    expect(screen.getByRole("heading", { name: "Incidencias" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Incidencias" }),
+    ).toBeInTheDocument();
     expect(screen.getAllByText("Sin prioridad")).toHaveLength(2);
     expect(screen.getAllByText("Sin asignar")).toHaveLength(2);
-    expect(screen.getByRole("link", { name: "Ver incidencia INC-0009" })).toHaveAttribute(
-      "aria-current",
-      "true",
-    );
+    expect(
+      screen.getByRole("link", { name: "Ver incidencia INC-0009" }),
+    ).toHaveAttribute("aria-current", "true");
     expect(screen.getByLabelText("Estado")).toHaveValue("");
     expect(
-      within(screen.getByRole("region", { name: "Filtros de incidencias" })).getByLabelText("Prioridad"),
+      within(
+        screen.getByRole("region", { name: "Filtros de incidencias" }),
+      ).getByLabelText("Prioridad"),
     ).toHaveValue("");
-    expect(screen.getByRole("button", { name: "Guardar cambios" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Guardar cambios" }),
+    ).toBeDisabled();
   });
 
   it("envía únicamente la prioridad modificada y actualiza el listado", async () => {
@@ -156,7 +169,9 @@ describe("H10: priorizar y asignar incidencias", () => {
   it("bloquea el cambio de una incidencia resuelta", () => {
     const resuelta = { ...incidencia, estado: "RESUELTA" as const };
     pantalla({ seleccionada: resuelta });
-    expect(screen.getByRole("button", { name: "Guardar cambios" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Guardar cambios" }),
+    ).toBeDisabled();
     expect(screen.getAllByLabelText("Prioridad")[1]).toBeDisabled();
     expect(screen.getByLabelText("Responsable")).toBeDisabled();
   });
@@ -227,3 +242,10 @@ describe("H10: priorizar y asignar incidencias", () => {
     );
   });
 });
+
+vi.mock("@/app/actions/integracion", () => ({
+  operacion: vi.fn().mockResolvedValue({ ok: true }),
+  cargarResidentes: vi
+    .fn()
+    .mockResolvedValue({ datos: [{ id: "r1", nombre: "Ana Perez" }] }),
+}));

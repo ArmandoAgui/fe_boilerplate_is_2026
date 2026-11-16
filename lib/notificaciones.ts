@@ -89,8 +89,23 @@ export function rutaDestinoAviso(aviso: Aviso) {
       return { href: "/paquetes", etiqueta: "Ver paquete" };
     case "VOTACION_ABIERTA":
       return { href: "/asambleas", etiqueta: "Ver asamblea" };
+    case "COMUNICADO_NUEVO":
+      return {
+        href:
+          aviso.referenciaId && UUID_AVISO.test(aviso.referenciaId)
+            ? `/comunicados/${aviso.referenciaId}`
+            : "/comunicados",
+        etiqueta: "Ver comunicado",
+      };
+    case "INCIDENCIA_RESUELTA":
+      return {
+        href:
+          aviso.referenciaId && UUID_AVISO.test(aviso.referenciaId)
+            ? `/incidencias/${aviso.referenciaId}`
+            : "/incidencias",
+        etiqueta: "Ver incidencia",
+      };
     default:
-      // H12 y H24 incorporarán los detalles privados de incidencia y comunicado.
       return null;
   }
 }
@@ -104,7 +119,8 @@ function partesFecha(iso: string) {
     month: "2-digit",
     day: "2-digit",
   }).formatToParts(fecha);
-  const valor = (tipo: string) => partes.find((parte) => parte.type === tipo)?.value ?? "";
+  const valor = (tipo: string) =>
+    partes.find((parte) => parte.type === tipo)?.value ?? "";
   return {
     fecha,
     dia: `${valor("year")}-${valor("month")}-${valor("day")}`,

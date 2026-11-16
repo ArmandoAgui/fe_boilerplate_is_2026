@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CambiarEstado } from "@/components/integracion/estado-incidencia";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { guardarAsignacionIncidencia } from "@/app/actions/incidencias-admin";
@@ -44,13 +45,19 @@ function hrefConFiltros({
 
 function EstadoPill({ estado }: { estado: EstadoIncidencia }) {
   return (
-    <span className={"incidencia-pill incidencia-estado-" + estado.toLowerCase()}>
+    <span
+      className={"incidencia-pill incidencia-estado-" + estado.toLowerCase()}
+    >
       {etiquetaEstado[estado]}
     </span>
   );
 }
 
-function PrioridadPill({ prioridad }: { prioridad: PrioridadIncidencia | null }) {
+function PrioridadPill({
+  prioridad,
+}: {
+  prioridad: PrioridadIncidencia | null;
+}) {
   if (!prioridad) return <span className="text-muted">Sin prioridad</span>;
   return (
     <span
@@ -110,8 +117,7 @@ function ControlesAsignacion({
     incidencia.responsable?.id ?? "",
   );
   const esResuelta = incidencia.estado === "RESUELTA";
-  const prioridadCambio =
-    prioridadNueva !== (incidencia.prioridad ?? "");
+  const prioridadCambio = prioridadNueva !== (incidencia.prioridad ?? "");
   const responsableCambio =
     responsableNuevo !== (incidencia.responsable?.id ?? "");
   const hayCambios = prioridadCambio || responsableCambio;
@@ -182,11 +188,16 @@ function ControlesAsignacion({
         </select>
         {errorResponsables && (
           <span className="mt-1 block text-xs text-muted">
-            No se pudo cargar el catálogo de responsables. Puedes cambiar la prioridad e intentarlo más tarde.
+            No se pudo cargar el catálogo de responsables. Puedes cambiar la
+            prioridad e intentarlo más tarde.
           </span>
         )}
       </label>
-      {error && <p role="alert" className="field-error">{error}</p>}
+      {error && (
+        <p role="alert" className="field-error">
+          {error}
+        </p>
+      )}
       <button
         className="button min-h-10 w-full rounded-lg py-2"
         disabled={!hayCambios || esResuelta || pending || guardado}
@@ -251,12 +262,7 @@ export function AdministrarIncidencias({
       });
       window.history.replaceState(null, "", nuevaUrl);
     }
-  }, [
-    estado,
-    prioridad,
-    incidencias.pagina,
-    seleccionadaId,
-  ]);
+  }, [estado, prioridad, incidencias.pagina, seleccionadaId]);
 
   const paginas = Math.max(
     1,
@@ -266,10 +272,7 @@ export function AdministrarIncidencias({
     ? textoPersona(detalle.autor ?? detalle.creadoPor ?? detalle.residente)
     : "";
 
-  function cambiarFiltro(
-    campo: "estado" | "prioridad",
-    valor: string,
-  ) {
+  function cambiarFiltro(campo: "estado" | "prioridad", valor: string) {
     setMensaje(null);
     setError(null);
     router.push(
@@ -335,7 +338,8 @@ export function AdministrarIncidencias({
         if (resultado.status === 404) {
           setError({
             id: seleccionada.id,
-            texto: "La incidencia ya no está disponible. Se actualizará la lista.",
+            texto:
+              "La incidencia ya no está disponible. Se actualizará la lista.",
           });
           router.push(
             hrefConFiltros({
@@ -405,19 +409,31 @@ export function AdministrarIncidencias({
       </header>
 
       {mensaje && (!seleccionada || mensaje.id === seleccionada.id) && (
-        <p role="status" className="rounded-lg border border-success-line bg-success-soft px-4 py-3 text-sm text-success-text">
+        <p
+          role="status"
+          className="rounded-lg border border-success-line bg-success-soft px-4 py-3 text-sm text-success-text"
+        >
           {mensaje.texto}
         </p>
       )}
       {!seleccionada && error && (
-        <p role="alert" className="rounded-lg border border-line bg-surface px-4 py-3 text-sm">
+        <p
+          role="alert"
+          className="rounded-lg border border-line bg-surface px-4 py-3 text-sm"
+        >
           {error.texto}
         </p>
       )}
       {errorInicial && (
-        <div role="alert" className="rounded-lg border border-line bg-surface px-4 py-3 text-sm">
+        <div
+          role="alert"
+          className="rounded-lg border border-line bg-surface px-4 py-3 text-sm"
+        >
           <p>{errorInicial}</p>
-          <button className="button-secondary mt-2" onClick={() => router.refresh()}>
+          <button
+            className="button-secondary mt-2"
+            onClick={() => router.refresh()}
+          >
             Reintentar
           </button>
         </div>
@@ -458,7 +474,9 @@ export function AdministrarIncidencias({
           </select>
         </label>
         <p aria-live="polite" role="status" className="pb-3 text-sm text-muted">
-          {pending ? "Actualizando incidencias…" : incidencias.total + " resultados"}
+          {pending
+            ? "Actualizando incidencias…"
+            : incidencias.total + " resultados"}
         </p>
       </section>
 
@@ -482,17 +500,30 @@ export function AdministrarIncidencias({
                   </caption>
                   <thead className="bg-surface-alt text-muted">
                     <tr>
-                      <th scope="col" className="px-3 py-3">Código</th>
-                      <th scope="col" className="px-3 py-3">Lugar y categoría</th>
-                      <th scope="col" className="px-3 py-3">Fecha</th>
-                      <th scope="col" className="px-3 py-3">Prioridad</th>
-                      <th scope="col" className="px-3 py-3">Responsable</th>
-                      <th scope="col" className="px-3 py-3">Estado</th>
+                      <th scope="col" className="px-3 py-3">
+                        Código
+                      </th>
+                      <th scope="col" className="px-3 py-3">
+                        Lugar y categoría
+                      </th>
+                      <th scope="col" className="px-3 py-3">
+                        Fecha
+                      </th>
+                      <th scope="col" className="px-3 py-3">
+                        Prioridad
+                      </th>
+                      <th scope="col" className="px-3 py-3">
+                        Responsable
+                      </th>
+                      <th scope="col" className="px-3 py-3">
+                        Estado
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {incidencias.datos.map((incidencia) => {
-                      const seleccionadaFila = seleccionada?.id === incidencia.id;
+                      const seleccionadaFila =
+                        seleccionada?.id === incidencia.id;
                       return (
                         <tr
                           key={incidencia.id}
@@ -511,7 +542,9 @@ export function AdministrarIncidencias({
                                 pagina: incidencias.pagina,
                                 id: incidencia.id,
                               })}
-                              aria-current={seleccionadaFila ? "true" : undefined}
+                              aria-current={
+                                seleccionadaFila ? "true" : undefined
+                              }
                               aria-label={"Ver incidencia " + incidencia.codigo}
                               className="rounded-sm text-accent underline decoration-transparent underline-offset-2 hover:decoration-current"
                               onClick={() => {
@@ -523,8 +556,12 @@ export function AdministrarIncidencias({
                             </Link>
                           </th>
                           <td className="px-3 py-3">
-                            <span className="block font-medium">{incidencia.lugar || "—"}</span>
-                            <span className="mt-0.5 block text-muted">{incidencia.categoria || "—"}</span>
+                            <span className="block font-medium">
+                              {incidencia.lugar || "—"}
+                            </span>
+                            <span className="mt-0.5 block text-muted">
+                              {incidencia.categoria || "—"}
+                            </span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-3 text-muted">
                             {fechaIncidencia(incidencia.creadaAt)}
@@ -609,12 +646,17 @@ export function AdministrarIncidencias({
             </dl>
             {detalle?.descripcion && (
               <div className="mt-4">
-                <h3 className="text-xs font-semibold text-muted">Descripción</h3>
+                <h3 className="text-xs font-semibold text-muted">
+                  Descripción
+                </h3>
                 <p className="mt-1 text-sm leading-6">{detalle.descripcion}</p>
               </div>
             )}
             {errorDetalle && estadoDetalle !== 404 && (
-              <div role="alert" className="mt-4 rounded-lg border border-line bg-surface-alt p-3 text-sm">
+              <div
+                role="alert"
+                className="mt-4 rounded-lg border border-line bg-surface-alt p-3 text-sm"
+              >
                 <p>{errorDetalle}</p>
                 <button
                   className="mt-2 font-semibold text-accent underline"
@@ -624,12 +666,13 @@ export function AdministrarIncidencias({
                 </button>
               </div>
             )}
-            {(!detalle && (!errorDetalle || estadoDetalle === 404)) && (
+            {!detalle && (!errorDetalle || estadoDetalle === 404) && (
               <p className="mt-4 rounded-lg bg-surface-alt px-3 py-2 text-xs text-muted">
                 Detalle e historial no disponibles todavía.
               </p>
             )}
 
+            <CambiarEstado id={seleccionada.id} estado={seleccionada.estado} />
             <ControlesAsignacion
               key={seleccionada.id}
               incidencia={seleccionada}
@@ -645,7 +688,10 @@ export function AdministrarIncidencias({
               onGuardar={guardar}
             />
 
-            <section aria-labelledby="historial-incidencia" className="mt-5 border-t border-line pt-4">
+            <section
+              aria-labelledby="historial-incidencia"
+              className="mt-5 border-t border-line pt-4"
+            >
               <h3 id="historial-incidencia" className="font-semibold">
                 Historial
               </h3>
@@ -653,13 +699,19 @@ export function AdministrarIncidencias({
                 <ol className="mt-3 space-y-3 border-l border-line pl-4">
                   {detalle.historial.map((evento, indice) => (
                     <li key={indice} className="relative text-xs">
-                      <span aria-hidden="true" className="absolute -left-[1.32rem] top-1 size-2 rounded-full bg-accent" />
-                      <p className="font-semibold">{evento.estado ?? "Actualización"}</p>
+                      <span
+                        aria-hidden="true"
+                        className="absolute -left-[1.32rem] top-1 size-2 rounded-full bg-accent"
+                      />
+                      <p className="font-semibold">
+                        {evento.valorNuevo ?? evento.estado ?? "Actualización"}
+                      </p>
                       {fechasConHora(evento.fecha ?? evento.creadaAt) && (
                         <p className="mt-0.5 text-muted">
                           {fechasConHora(evento.fecha ?? evento.creadaAt)}
                         </p>
                       )}
+                      {evento.actor && <p>{evento.actor}</p>}
                       {evento.responsable && (
                         <p className="mt-0.5 text-muted">
                           Responsable: {textoPersona(evento.responsable)}
