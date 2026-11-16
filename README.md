@@ -1,6 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Para producción en Docker, consultar la [guía del frontend](docs/docker.md). La orquestación completa (Caddy, frontend, backend, PostgreSQL, bootstrap de Ubuntu y respaldos) se mantiene en `deploy/` y `docs/despliegue/` del backend.
+Para desplegar, comenzar por el [paso a paso de AWS](docs/PASO-A-PASO-DEPLOY.md) y la [guía Docker del frontend](docs/docker.md). La orquestación completa (Caddy, frontend, backend, PostgreSQL, bootstrap de Ubuntu y respaldos) se mantiene en `deploy/` y `docs/despliegue/` del backend.
 
 ## Getting Started
 
