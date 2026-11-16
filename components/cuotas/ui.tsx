@@ -1,8 +1,11 @@
 import Link from "next/link";
 import {
   colorEstadoCuota,
+  colorEstadoPago,
   etiquetaEstadoCuota,
+  etiquetaEstadoPago,
   type EstadoCuota,
+  type EstadoPago,
 } from "@/lib/cuotas";
 
 // Duplica a propósito los equivalentes de reservas y visitas, siguiendo la
@@ -62,6 +65,20 @@ export function EstadoCuotaBadge({ estado }: { estado: EstadoCuota }) {
         style={{ background: colorEstadoCuota[estado] }}
       />
       {etiquetaEstadoCuota[estado]}
+    </span>
+  );
+}
+
+/** H2: mismo estilo de punto y etiqueta para el estado del pago. */
+export function EstadoPagoBadge({ estado }: { estado: EstadoPago }) {
+  return (
+    <span className="inline-flex items-center gap-2 whitespace-nowrap">
+      <span
+        aria-hidden
+        className="size-2 shrink-0 rounded-full"
+        style={{ background: colorEstadoPago[estado] }}
+      />
+      {etiquetaEstadoPago[estado]}
     </span>
   );
 }
