@@ -123,6 +123,7 @@ export function Navegacion({
           <Link href="/admin/reservas">Aprobar reservas</Link>
           <Link href="/admin/cuotas/generar">Generar cuotas</Link>
           <Link href="/admin/morosidad">Morosidad</Link>
+          <Link href="/admin/reportes">Reportes</Link>
           <Link href="/seguridad/presentes">Visitantes presentes</Link>
           <Link href="/admin/asambleas/nueva">Convocar asamblea</Link>
           <Link href="/asambleas">Asambleas</Link>
