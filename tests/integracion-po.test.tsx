@@ -90,7 +90,7 @@ describe("Reglas PO en la interfaz", () => {
     );
     await screen.findByRole("option", { name: "Ana Perez · ana@po.test" });
     expect(
-      screen.getByRole("button", { name: "Confirmar" }),
+      await screen.findByRole("button", { name: "Confirmar" }),
     ).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Residente que retira"), {
       target: { value: "r1" },
