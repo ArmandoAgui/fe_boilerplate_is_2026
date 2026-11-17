@@ -52,7 +52,7 @@ const enlacesResidente = [
   { texto: "Mis visitantes", href: "/visitas" },
   { texto: "Mis paquetes", href: "/paquetes" },
   { texto: "Asambleas", href: "/asambleas" },
-  { texto: "Mis incidencias", href: "/incidencias" },
+  { texto: "Incidencias", href: "/incidencias" },
   { texto: "Comunicados", href: "/comunicados" },
   { texto: "Estado de cuenta", href: "/cuotas" },
   { texto: "Avisos", href: "/avisos" },

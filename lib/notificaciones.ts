@@ -98,13 +98,13 @@ export function rutaDestinoAviso(aviso: Aviso) {
         etiqueta: "Ver comunicado",
       };
     case "INCIDENCIA_RESUELTA":
-      return {
-        href:
-          aviso.referenciaId && UUID_AVISO.test(aviso.referenciaId)
-            ? `/incidencias/${aviso.referenciaId}`
-            : "/incidencias",
-        etiqueta: "Ver incidencia",
-      };
+      if (aviso.moduloOrigen !== "INCIDENCIAS") return null;
+      return UUID_AVISO.test(aviso.referenciaId ?? "")
+        ? {
+            href: "/incidencias/" + aviso.referenciaId,
+            etiqueta: "Ver incidencia",
+          }
+        : { href: "/incidencias", etiqueta: "Mis incidencias" };
     default:
       return null;
   }

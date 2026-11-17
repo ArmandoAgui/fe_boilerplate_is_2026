@@ -175,6 +175,12 @@ export function BandejaAvisos() {
 
   async function seleccionar(aviso: Aviso) {
     if (pendiente) return;
+    const destino = rutaDestinoAviso(aviso);
+    if (aviso.estado === "LEIDA") {
+      if (destino) router.push(destino.href);
+      else setFeedback("Este módulo aún no está disponible.");
+      return;
+    }
     setPendiente(aviso.id);
     setFeedback("");
     const resultado = await marcarLeido(aviso.id, aviso.estado);
@@ -186,9 +192,8 @@ export function BandejaAvisos() {
     }
     setFeedback("Aviso marcado como leído.");
     void refrescarCampana();
-    if (aviso.estado === "NO_LEIDA" || !rutaDestinoAviso(aviso))
+    if (aviso.estado === "NO_LEIDA" || !destino)
       setIntento((valor) => valor + 1);
-    const destino = rutaDestinoAviso(aviso);
     if (destino) router.push(destino.href);
     else setFeedback("Aviso leído. El módulo relacionado aún no está disponible.");
   }

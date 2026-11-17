@@ -79,6 +79,64 @@ const semilla = [
     creadaAt: "2026-10-07T16:00:00.000Z",
   },
 ];
+const idIncidenciaResuelta = "f9e40d22-b0e3-46fb-8bed-412da001d48d";
+const idIncidenciaAbierta = "52c3a7e4-7f3f-41fb-b908-2f85bf2572ac";
+const idIncidenciaAjena = "9c4db782-3faf-4c35-9ad8-2833f0356732";
+const idEvidenciaAbierta = "8ea0bd87-5dfb-4b26-9c38-974ce21dc34e";
+const incidencias = [
+  {
+    id: idIncidenciaAbierta,
+    codigo: "INC-0009",
+    categoria: "FUGA",
+    creadaAt: "2026-11-03T14:14:00.000Z",
+    estado: "ABIERTA",
+    autorId: usuarios.residente.id,
+    responsableId: null,
+    descripcion: "Hay una fuga debajo del lavatrastos. El piso amanece mojado.",
+    lugar: "Unidad A-101",
+    prioridad: "ALTA",
+    responsable: null,
+    evidencias: [{ id: idEvidenciaAbierta, url: "/api/v1/incidencias/" + idIncidenciaAbierta + "/evidencias/" + idEvidenciaAbierta }],
+    historial: [
+      { campo: "ESTADO", valorAnterior: null, valorNuevo: "ABIERTA", actor: { id: usuarios.residente.id, nombre: usuarios.residente.nombre }, fecha: "2026-11-03T14:14:00.000Z" },
+    ],
+  },
+  {
+    id: idIncidenciaResuelta,
+    codigo: "INC-0003",
+    categoria: "LIMPIEZA",
+    creadaAt: "2026-11-01T14:00:00.000Z",
+    estado: "RESUELTA",
+    autorId: usuarios.residente.id,
+    responsableId: usuarios.seguridad.id,
+    descripcion: "El área del asador necesita limpieza.",
+    lugar: "Asador",
+    prioridad: "BAJA",
+    responsable: { id: usuarios.seguridad.id, nombre: usuarios.seguridad.nombre },
+    evidencias: [],
+    historial: [
+      { campo: "ESTADO", valorAnterior: "EN_PROCESO", valorNuevo: "RESUELTA", actor: { id: usuarios.admin.id, nombre: usuarios.admin.nombre }, fecha: "2026-11-01T16:00:00.000Z" },
+      { campo: "ESTADO", valorAnterior: "ASIGNADA", valorNuevo: "EN_PROCESO", actor: { id: usuarios.seguridad.id, nombre: usuarios.seguridad.nombre }, fecha: "2026-11-01T15:00:00.000Z" },
+      { campo: "ESTADO", valorAnterior: "ABIERTA", valorNuevo: "ASIGNADA", actor: { id: usuarios.admin.id, nombre: usuarios.admin.nombre }, fecha: "2026-11-01T14:30:00.000Z" },
+      { campo: "ESTADO", valorAnterior: null, valorNuevo: "ABIERTA", actor: { id: usuarios.residente.id, nombre: usuarios.residente.nombre }, fecha: "2026-11-01T14:00:00.000Z" },
+    ],
+  },
+  {
+    id: idIncidenciaAjena,
+    codigo: "INC-0100",
+    categoria: "ELECTRICIDAD",
+    creadaAt: "2026-11-04T14:14:00.000Z",
+    estado: "ABIERTA",
+    autorId: usuarios.admin.id,
+    responsableId: null,
+    descripcion: "Reporte de otro usuario.",
+    lugar: "Unidad B-202",
+    prioridad: null,
+    responsable: null,
+    evidencias: [],
+    historial: [],
+  },
+];
 let avisos = structuredClone(semilla);
 let lecturas = 0;
 let parches = 0;
@@ -90,6 +148,20 @@ function responder(res, status, data) {
   });
   res.end(JSON.stringify(data));
 }
+
+function responderImagen(res, status, bytes) {
+  res.writeHead(status, {
+    "Content-Type": "image/png",
+    "Cache-Control": "private, no-store",
+    "X-Content-Type-Options": "nosniff",
+  });
+  res.end(bytes);
+}
+
+const imagenPrueba = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j8ioAAAAASUVORK5CYII=",
+  "base64",
+);
 
 function usuarioDe(req) {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
@@ -136,6 +208,11 @@ const server = createServer(async (req, res) => {
       parches = 0;
       return responder(res, 200, { ok: true });
     }
+    if (ruta === "/__test/h28-first" && req.method === "POST") {
+      const aviso = avisos.find((item) => item.tipoEvento === "INCIDENCIA_RESUELTA");
+      if (aviso) aviso.creadaAt = new Date().toISOString();
+      return responder(res, 200, { ok: Boolean(aviso) });
+    }
     const prepararNoLeidas = ruta.match(/^\/__test\/unread\/(\d+)$/);
     if (req.method === "POST" && prepararNoLeidas) {
       const cantidad = Number(prepararNoLeidas[1]);
@@ -170,6 +247,71 @@ const server = createServer(async (req, res) => {
     if (!usuario) return responder(res, 401, { message: "Sesión inválida" });
     if (req.method === "GET" && ruta === `${prefijo}/auth/me`)
       return responder(res, 200, usuario);
+
+    if (req.method === "GET" && ruta === prefijo + "/incidencias/mias") {
+      if (usuario.rol !== "RESIDENTE")
+        return responder(res, 403, { message: "No autorizado" });
+      const permitidas = new Set(["pagina", "tamanoPagina", "estado"]);
+      for (const clave of new Set(url.searchParams.keys())) {
+        if (!permitidas.has(clave) || url.searchParams.getAll(clave).length !== 1)
+          return responder(res, 400, { message: "Consulta inválida" });
+      }
+      const estado = url.searchParams.get("estado");
+      const pagina = Number(url.searchParams.get("pagina") ?? 1);
+      const tamanoPagina = Number(url.searchParams.get("tamanoPagina") ?? 20);
+      if (
+        (estado && !["ABIERTA", "ASIGNADA", "EN_PROCESO", "RESUELTA"].includes(estado)) ||
+        !Number.isSafeInteger(pagina) || pagina < 1 ||
+        !Number.isSafeInteger(tamanoPagina) || tamanoPagina < 1 || tamanoPagina > 50 ||
+        !Number.isSafeInteger((pagina - 1) * tamanoPagina)
+      )
+        return responder(res, 400, { message: "Consulta inválida" });
+      const filtradas = incidencias
+        .filter((incidencia) => incidencia.autorId === usuario.id)
+        .filter((incidencia) => !estado || incidencia.estado === estado)
+        .sort((a, b) => b.creadaAt.localeCompare(a.creadaAt) || b.id.localeCompare(a.id));
+      const inicio = (pagina - 1) * tamanoPagina;
+      return responder(res, 200, {
+        datos: filtradas.slice(inicio, inicio + tamanoPagina).map(({ id, codigo, categoria, creadaAt, estado: estadoActual }) => ({
+          id, codigo, categoria, creadaAt, estado: estadoActual,
+        })),
+        total: filtradas.length,
+        pagina,
+        tamanoPagina,
+      });
+    }
+
+    const evidencia = ruta.match(
+      new RegExp("^" + prefijo + "/incidencias/([^/]+)/evidencias/([^/]+)$"),
+    );
+    if (req.method === "GET" && evidencia) {
+      const incidencia = incidencias.find((item) => item.id === evidencia[1]);
+      const permitida = incidencia &&
+        incidencia.evidencias.some((item) => item.id === evidencia[2]) &&
+        ((usuario.rol === "RESIDENTE" && incidencia.autorId === usuario.id) ||
+          usuario.rol === "ADMINISTRADOR" ||
+          (usuario.rol === "SEGURIDAD" && incidencia.responsableId === usuario.id));
+      if (!permitida) return responder(res, 404, { message: "Foto no disponible." });
+      return responderImagen(res, 200, imagenPrueba);
+    }
+
+    const detalleIncidencia = ruta.match(
+      new RegExp("^" + prefijo + "/incidencias/([^/]+)$"),
+    );
+    if (req.method === "GET" && detalleIncidencia) {
+      const incidencia = incidencias.find((item) => item.id === detalleIncidencia[1]);
+      const permitida = incidencia &&
+        ((usuario.rol === "RESIDENTE" && incidencia.autorId === usuario.id) ||
+          usuario.rol === "ADMINISTRADOR" ||
+          (usuario.rol === "SEGURIDAD" && incidencia.responsableId === usuario.id));
+      if (!permitida) return responder(res, 404, { message: "Incidencia no disponible." });
+      const detalle = Object.fromEntries(
+        Object.entries(incidencia).filter(
+          ([clave]) => !["autorId", "responsableId", "creadaAt"].includes(clave),
+        ),
+      );
+      return responder(res, 200, detalle);
+    }
 
     if (ruta === `${prefijo}/notificaciones/mias` && req.method === "GET") {
       if (usuario.rol !== "RESIDENTE")

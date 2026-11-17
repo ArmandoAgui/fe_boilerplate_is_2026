@@ -45,7 +45,23 @@ export function EstructuraPlataforma({
   const pathname = usePathname();
   const esResidente = usuario.rol === "RESIDENTE";
   const enAvisos = esResidente && pathname === "/avisos";
-  if (pathname === "/admin/incidencias" && usuario.rol === "ADMINISTRADOR") {
+  const enIncidencias = esResidente && pathname.startsWith("/incidencias");
+  const tituloResidente = enAvisos
+    ? "Avisos"
+    : pathname === "/incidencias"
+      ? "Incidencias"
+      : pathname === "/incidencias/nueva"
+        ? "Reportar"
+        : "Detalle";
+  const prefijoResidente = enAvisos
+    ? "Inicio"
+    : pathname === "/incidencias"
+      ? "Inicio"
+      : "Incidencias";
+  if (
+    pathname === "/admin/incidencias" &&
+    usuario.rol === "ADMINISTRADOR"
+  ) {
     return (
       <div className="flex min-h-screen flex-1 flex-col lg:flex-row">
         <aside className="flex w-full shrink-0 flex-col bg-[#30373f] text-slate-100 lg:min-h-screen lg:w-48">
@@ -144,7 +160,7 @@ export function EstructuraPlataforma({
     );
   }
 
-  if (enAvisos) {
+  if (enAvisos || enIncidencias) {
     return (
       <div className="flex min-h-screen flex-1 bg-background">
         <aside className="hidden w-56 shrink-0 flex-col bg-[#30373f] text-slate-100 lg:flex">
@@ -172,8 +188,8 @@ export function EstructuraPlataforma({
           <header className="border-b border-line bg-surface">
             <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-6">
               <p className="text-xs text-muted">
-                Inicio <span aria-hidden="true">/</span>{" "}
-                <span className="font-semibold text-foreground">Avisos</span>
+                {prefijoResidente} <span aria-hidden="true">/</span>{" "}
+                <span className="font-semibold text-foreground">{tituloResidente}</span>
               </p>
               <div className="flex items-center gap-3">
                 <CampanaAvisos />

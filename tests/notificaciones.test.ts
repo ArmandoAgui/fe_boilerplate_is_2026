@@ -67,22 +67,29 @@ describe("contrato de avisos H27", () => {
     );
   });
 
-  it("navega a todos los módulos integrados", () => {
-    expect(rutaDestinoAviso(avisoBase)).toEqual({
-      href: "/paquetes",
-      etiqueta: "Ver paquete",
+  it("apunta a los módulos existentes y resuelve el detalle privado de H12", () => {
+    expect(rutaDestinoAviso(avisoBase)).toEqual({ href: "/paquetes", etiqueta: "Ver paquete" });
+    expect(rutaDestinoAviso({ ...avisoBase, tipoEvento: "CUOTA_POR_VENCER" } )?.href).toBe("/cuotas");
+    expect(rutaDestinoAviso({ ...avisoBase, tipoEvento: "VOTACION_ABIERTA" } )?.href).toBe("/asambleas");
+    expect(rutaDestinoAviso({ ...avisoBase, tipoEvento: "COMUNICADO_NUEVO" })).toMatchObject({href:"/comunicados"});
+    const avisoIncidencia = {
+      ...avisoBase,
+      moduloOrigen: "INCIDENCIAS" as const,
+      tipoEvento: "INCIDENCIA_RESUELTA",
+      referenciaId: "f9e40d22-b0e3-46fb-8bed-412da001d48d",
+    };
+    expect(rutaDestinoAviso(avisoIncidencia)).toEqual({
+      href: "/incidencias/f9e40d22-b0e3-46fb-8bed-412da001d48d",
+      etiqueta: "Ver incidencia",
     });
     expect(
-      rutaDestinoAviso({ ...avisoBase, tipoEvento: "CUOTA_POR_VENCER" })?.href,
-    ).toBe("/cuotas");
+      rutaDestinoAviso({ ...avisoIncidencia, referenciaId: null }),
+    ).toEqual({ href: "/incidencias", etiqueta: "Mis incidencias" });
     expect(
-      rutaDestinoAviso({ ...avisoBase, tipoEvento: "VOTACION_ABIERTA" })?.href,
-    ).toBe("/asambleas");
+      rutaDestinoAviso({ ...avisoIncidencia, referenciaId: "no-es-uuid" }),
+    ).toEqual({ href: "/incidencias", etiqueta: "Mis incidencias" });
     expect(
-      rutaDestinoAviso({ ...avisoBase, tipoEvento: "COMUNICADO_NUEVO" }),
-    ).toMatchObject({ href: "/comunicados" });
-    expect(
-      rutaDestinoAviso({ ...avisoBase, tipoEvento: "INCIDENCIA_RESUELTA" }),
-    ).toMatchObject({ href: "/incidencias" });
+      rutaDestinoAviso({ ...avisoIncidencia, moduloOrigen: "PAQUETERIA" }),
+    ).toBeNull();
   });
 });

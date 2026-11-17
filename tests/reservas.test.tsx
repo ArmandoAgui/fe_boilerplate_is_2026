@@ -406,7 +406,7 @@ describe("permisos y fechas", () => {
         rol === "RESIDENTE",
       );
       const enlaceReporte = screen
-        .queryAllByRole("link", { name: "Mis incidencias" })
+        .queryAllByRole("link", { name: "Incidencias" })
         .some((enlace) => enlace.getAttribute("href") === "/incidencias");
       expect(enlaceReporte).toBe(rol === "RESIDENTE");
     },
