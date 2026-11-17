@@ -47,8 +47,8 @@ test("PO: administración consulta indicadores, descarga PDF y valida períodos"
   );
   await page.goto("/admin/reportes?desde=2026-12-01&hasta=2026-01-01");
   await expect(
-    page.getByRole("alert").filter({ hasText: "El rango" }),
-  ).toContainText("rango");
+    page.getByRole("alert").filter({ hasText: "Desde" }),
+  ).toContainText("Desde no puede ser posterior a Hasta");
   await page.goto("/admin/residentes");
   await expect(
     page.getByRole("heading", { name: "Residentes y unidades" }),
