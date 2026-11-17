@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { AdministrarIncidencias } from "@/components/incidencias/administrar-incidencias";
-import { guardarAsignacionIncidencia } from "@/app/actions/incidencias-admin";
+import {
+  actualizarEstadoIncidencia,
+  guardarAsignacionIncidencia,
+} from "@/app/actions/incidencias-admin";
 import type {
+  IncidenciaDetalle,
   IncidenciaResumen,
   ListaIncidencias,
 } from "@/lib/incidencias-admin";
@@ -15,6 +19,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => navegacion,
 }));
 vi.mock("@/app/actions/incidencias-admin", () => ({
+  actualizarEstadoIncidencia: vi.fn(),
   guardarAsignacionIncidencia: vi.fn(),
 }));
 
@@ -75,6 +80,51 @@ describe("H10: priorizar y asignar incidencias", () => {
       within(screen.getByRole("region", { name: "Filtros de incidencias" })).getByLabelText("Prioridad"),
     ).toHaveValue("");
     expect(screen.getByRole("button", { name: "Guardar cambios" })).toBeDisabled();
+  });
+
+  it("muestra el historial H12 y carga las fotos mediante la ruta privada local", () => {
+    const evidenciaId = "f422f158-98f8-4bfa-b45f-c6bf507613d5";
+    const detalle: IncidenciaDetalle = {
+      id: incidencia.id,
+      codigo: incidencia.codigo,
+      categoria: incidencia.categoria,
+      descripcion: "Fuga bajo el lavatrastos.",
+      lugar: incidencia.lugar,
+      estado: "ASIGNADA",
+      prioridad: null,
+      responsable: null,
+      evidencias: [{
+        id: evidenciaId,
+        url: `/api/v1/incidencias/${incidencia.id}/evidencias/${evidenciaId}`,
+      }],
+      historial: [
+        {
+          campo: "ESTADO",
+          valorAnterior: "ASIGNADA",
+          valorNuevo: "EN_PROCESO",
+          actor: "Carlos Alvarado",
+          fecha: "2026-11-03T16:20:00.000Z",
+        },
+        {
+          campo: "RESPONSABLE",
+          valorAnterior: null,
+          valorNuevo: responsableId,
+          actor: "Carlos Alvarado",
+          fecha: "2026-11-03T16:10:00.000Z",
+        },
+      ],
+    };
+
+    pantalla({ detalle });
+
+    expect(screen.getByText("Estado: Asignada → En proceso")).toBeInTheDocument();
+    expect(screen.getByText("Responsable: Sin asignar → Responsable actualizado")).toBeInTheDocument();
+    expect(screen.getAllByText("Por: Carlos Alvarado")).toHaveLength(2);
+    expect(screen.getByAltText("Evidencia de INC-0009")).toHaveAttribute(
+      "src",
+      `http://localhost:3000/api/incidencias/${incidencia.id}/evidencias/${evidenciaId}`,
+    );
+    expect(screen.queryByText(responsableId)).not.toBeInTheDocument();
   });
 
   it("envía únicamente la prioridad modificada y actualiza el listado", async () => {
@@ -177,6 +227,94 @@ describe("H10: priorizar y asignar incidencias", () => {
       "La incidencia ya fue resuelta",
     );
     expect(navegacion.refresh).toHaveBeenCalled();
+  });
+
+  it("confirma el inicio de atención solo después de aceptar el diálogo", async () => {
+    const asignada = { ...incidencia, estado: "ASIGNADA" as const };
+    vi.mocked(actualizarEstadoIncidencia).mockResolvedValue({
+      datos: {
+        id: incidencia.id,
+        estado: "EN_PROCESO",
+        actualizadaAt: "2026-11-03T14:14:00.000Z",
+      },
+      estadoActual: "EN_PROCESO",
+      estadoVerificado: true,
+    });
+
+    pantalla({ seleccionada: asignada, incidencias: { ...lista, datos: [asignada] } });
+    fireEvent.click(screen.getByRole("button", { name: "Iniciar atención" }));
+    const dialogo = screen.getByRole("dialog");
+    expect(dialogo).toHaveTextContent(
+      "¿Iniciar la atención de la incidencia INC-0009? Pasará a En proceso.",
+    );
+    expect(actualizarEstadoIncidencia).not.toHaveBeenCalled();
+
+    fireEvent.click(within(dialogo).getByRole("button", { name: "Volver" }));
+    expect(actualizarEstadoIncidencia).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Iniciar atención" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Iniciar atención" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Confirmar" }));
+
+    await waitFor(() =>
+      expect(actualizarEstadoIncidencia).toHaveBeenCalledWith(
+        incidencia.id,
+        "EN_PROCESO",
+      ),
+    );
+    expect(await screen.findByText("Atención iniciada")).toBeInTheDocument();
+    expect(within(screen.getByRole("complementary", { name: "Detalle de INC-0009" })).getByText("En proceso")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Marcar como resuelta" })).toBeDisabled();
+    expect(navegacion.refresh).toHaveBeenCalled();
+  });
+
+  it("confirma la resolución y mantiene el estado aunque H28 devuelva 500", async () => {
+    const enProceso = { ...incidencia, estado: "EN_PROCESO" as const };
+    vi.mocked(actualizarEstadoIncidencia).mockResolvedValue({
+      error: "No se pudo completar la operación. Intente de nuevo.",
+      status: 500,
+      estadoActual: "RESUELTA",
+      estadoVerificado: true,
+    });
+
+    pantalla({ seleccionada: enProceso, incidencias: { ...lista, datos: [enProceso] } });
+    fireEvent.click(screen.getByRole("button", { name: "Marcar como resuelta" }));
+    const dialogo = screen.getByRole("dialog");
+    expect(dialogo).toHaveTextContent(
+      "¿Marcar la incidencia INC-0009 como Resuelta? El residente recibirá un aviso.",
+    );
+    fireEvent.click(within(dialogo).getByRole("button", { name: "Confirmar" }));
+
+    await waitFor(() =>
+      expect(actualizarEstadoIncidencia).toHaveBeenCalledWith(
+        incidencia.id,
+        "RESUELTA",
+      ),
+    );
+    expect(
+      await screen.findByText(
+        "La incidencia quedó resuelta, pero no se pudo confirmar el aviso al residente.",
+      ),
+    ).toHaveAttribute("role", "status");
+    expect(screen.queryByRole("button", { name: "Marcar como resuelta" })).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /Guardar cambios|Guardando…/ }),
+      ).toBeDisabled(),
+    );
+  });
+
+  it("exige descartar los cambios H10 antes de abrir la confirmación H11", () => {
+    const asignada = { ...incidencia, estado: "ASIGNADA" as const };
+    pantalla({ seleccionada: asignada, incidencias: { ...lista, datos: [asignada] } });
+    fireEvent.change(screen.getAllByLabelText("Prioridad")[1], {
+      target: { value: "ALTA" },
+    });
+
+    expect(screen.getByRole("button", { name: "Iniciar atención" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Descartar cambios" }));
+    expect(screen.getByRole("button", { name: "Iniciar atención" })).toBeEnabled();
+    expect(actualizarEstadoIncidencia).not.toHaveBeenCalled();
   });
 
   it("mantiene la selección e identifica el campo si la API rechaza un valor", async () => {

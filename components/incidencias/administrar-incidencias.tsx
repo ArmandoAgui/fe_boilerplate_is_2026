@@ -2,9 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import { guardarAsignacionIncidencia } from "@/app/actions/incidencias-admin";
+import { useEffect, useRef, useState, useTransition } from "react";
+import Image from "next/image";
 import {
+  actualizarEstadoIncidencia,
+  guardarAsignacionIncidencia,
+} from "@/app/actions/incidencias-admin";
+import {
+  accionEstadoIncidencia,
   ESTADOS_INCIDENCIA,
   PRIORIDADES_INCIDENCIA,
   coincideConFiltros,
@@ -12,6 +17,7 @@ import {
   etiquetaPrioridad,
   fechaIncidencia,
   type EstadoIncidencia,
+  type EstadoDestinoIncidencia,
   type IncidenciaDetalle,
   type IncidenciaResumen,
   type ListaIncidencias,
@@ -63,11 +69,6 @@ function PrioridadPill({ prioridad }: { prioridad: PrioridadIncidencia | null })
   );
 }
 
-function textoPersona(persona?: string | { nombre?: string } | null) {
-  if (typeof persona === "string") return persona;
-  return persona?.nombre ?? "";
-}
-
 function fechasConHora(valor?: string) {
   if (!valor) return "";
   const fecha = new Date(valor);
@@ -79,6 +80,60 @@ function fechasConHora(valor?: string) {
   }).format(fecha);
 }
 
+function textoValorHistorial(campo: string, valor: string | null) {
+  if (!valor) return campo === "RESPONSABLE" ? "Sin asignar" : "Sin valor";
+  if (campo === "ESTADO")
+    return valor in etiquetaEstado
+      ? etiquetaEstado[valor as EstadoIncidencia]
+      : valor;
+  if (campo === "PRIORIDAD")
+    return valor in etiquetaPrioridad
+      ? etiquetaPrioridad[valor as PrioridadIncidencia]
+      : valor;
+  return "Responsable actualizado";
+}
+
+function descripcionMovimiento(campo: string, anterior: string | null, nuevo: string) {
+  const etiqueta =
+    campo === "ESTADO"
+      ? "Estado"
+      : campo === "PRIORIDAD"
+        ? "Prioridad"
+        : "Responsable";
+  if (campo === "RESPONSABLE")
+    return `${etiqueta}: ${textoValorHistorial(campo, anterior)} → Responsable actualizado`;
+  return `${etiqueta}: ${textoValorHistorial(campo, anterior)} → ${textoValorHistorial(campo, nuevo)}`;
+}
+
+function FotoEvidencia({
+  incidenciaId,
+  evidenciaId,
+  codigo,
+}: {
+  incidenciaId: string;
+  evidenciaId: string;
+  codigo: string;
+}) {
+  const [fallida, setFallida] = useState(false);
+  if (fallida)
+    return (
+      <span className="flex h-24 w-28 items-center justify-center rounded-lg bg-surface-alt px-2 text-center text-xs text-muted">
+        Foto no disponible
+      </span>
+    );
+  return (
+    <Image
+      src={`/api/incidencias/${incidenciaId}/evidencias/${evidenciaId}`}
+      alt={`Evidencia de ${codigo}`}
+      width={112}
+      height={96}
+      unoptimized
+      className="h-24 w-28 rounded-lg border border-line object-cover"
+      onError={() => setFallida(true)}
+    />
+  );
+}
+
 function ControlesAsignacion({
   incidencia,
   responsables,
@@ -87,7 +142,7 @@ function ControlesAsignacion({
   campoError,
   pending,
   guardado,
-  onEditar,
+  onCambiosPendientes,
   onGuardar,
 }: {
   incidencia: IncidenciaResumen;
@@ -97,7 +152,7 @@ function ControlesAsignacion({
   campoError?: string;
   pending: boolean;
   guardado: boolean;
-  onEditar: () => void;
+  onCambiosPendientes: (pendiente: boolean) => void;
   onGuardar: (cambios: {
     prioridad?: PrioridadIncidencia;
     responsableId?: string;
@@ -144,8 +199,11 @@ function ControlesAsignacion({
           disabled={esResuelta || pending}
           aria-invalid={campoError === "prioridad" || undefined}
           onChange={(event) => {
-            setPrioridadNueva(event.target.value as PrioridadIncidencia | "");
-            onEditar();
+            const valor = event.target.value as PrioridadIncidencia | "";
+            setPrioridadNueva(valor);
+            onCambiosPendientes(
+              valor !== (incidencia.prioridad ?? "") || responsableCambio,
+            );
           }}
         >
           {!prioridadNueva && <option value="">Sin prioridad</option>}
@@ -164,8 +222,9 @@ function ControlesAsignacion({
           disabled={esResuelta || pending}
           aria-invalid={campoError === "responsableId" || undefined}
           onChange={(event) => {
-            setResponsableNuevo(event.target.value);
-            onEditar();
+            const valor = event.target.value;
+            setResponsableNuevo(valor);
+            onCambiosPendientes(valor !== (incidencia.responsable?.id ?? "") || prioridadCambio);
           }}
         >
           {!responsableNuevo && <option value="">Sin asignar</option>}
@@ -237,8 +296,58 @@ export function AdministrarIncidencias({
   } | null>(null);
   const [guardadoId, setGuardadoId] = useState("");
   const [pending, startTransition] = useTransition();
+  const [cambiosPendientes, setCambiosPendientes] = useState(false);
+  const [versionEdicion, setVersionEdicion] = useState(0);
+  const [confirmacionEstado, setConfirmacionEstado] = useState<{
+    id: string;
+    codigo: string;
+    origen: EstadoIncidencia;
+    destino: EstadoDestinoIncidencia;
+  } | null>(null);
+  const [estadoConfirmado, setEstadoConfirmado] = useState<{
+    id: string;
+    origen: EstadoIncidencia;
+    estado: EstadoIncidencia;
+    esperaRefresco: boolean;
+  } | null>(null);
+  const [errorEstado, setErrorEstado] = useState<{ id: string; texto: string } | null>(null);
+  const [verificacionPendiente, setVerificacionPendiente] = useState<{
+    id: string;
+    lista: ListaIncidencias;
+  } | null>(null);
+  const dialogoEstado = useRef<HTMLDialogElement>(null);
+  const botonAccionEstado = useRef<HTMLButtonElement>(null);
+  const botonVolverDialogo = useRef<HTMLButtonElement>(null);
+  const anuncioEstado = useRef<HTMLParagraphElement>(null);
+  const envioEstadoBloqueado = useRef(false);
 
   const seleccionadaId = seleccionada?.id;
+  const verificacionPendienteId =
+    verificacionPendiente?.lista === incidencias ? verificacionPendiente.id : "";
+  const estadoSeleccionado =
+    seleccionada &&
+    estadoConfirmado?.id === seleccionada.id &&
+    seleccionada.estado === estadoConfirmado.origen
+      ? estadoConfirmado.estado
+      : seleccionada?.estado;
+  const incidenciaVisible = seleccionada && estadoSeleccionado
+    ? { ...seleccionada, estado: estadoSeleccionado }
+    : seleccionada;
+  const accionH11 = estadoSeleccionado
+    ? accionEstadoIncidencia(estadoSeleccionado)
+    : undefined;
+
+  useEffect(() => {
+    if (mensaje) anuncioEstado.current?.focus();
+  }, [mensaje]);
+
+  useEffect(() => {
+    const dialogo = dialogoEstado.current;
+    if (confirmacionEstado && dialogo && !dialogo.open) {
+      dialogo.showModal();
+      botonVolverDialogo.current?.focus();
+    }
+  }, [confirmacionEstado]);
   useEffect(() => {
     if (!seleccionadaId || typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -262,10 +371,6 @@ export function AdministrarIncidencias({
     1,
     Math.ceil(incidencias.total / incidencias.tamanoPagina),
   );
-  const nombreAutor = detalle
-    ? textoPersona(detalle.autor ?? detalle.creadoPor ?? detalle.residente)
-    : "";
-
   function cambiarFiltro(
     campo: "estado" | "prioridad",
     valor: string,
@@ -365,6 +470,8 @@ export function AdministrarIncidencias({
       }
 
       setGuardadoId(seleccionada.id);
+      setCambiosPendientes(false);
+      setVersionEdicion((version) => version + 1);
       setMensaje({ id: seleccionada.id, texto: "Cambios guardados" });
       const saleDelFiltro = !coincideConFiltros(
         {
@@ -395,6 +502,189 @@ export function AdministrarIncidencias({
     setError(null);
   }
 
+  function descartarCambios() {
+    setCambiosPendientes(false);
+    setVersionEdicion((version) => version + 1);
+    setMensaje(null);
+    setError(null);
+  }
+
+  function abrirConfirmacionEstado() {
+    if (!seleccionada || !estadoSeleccionado || !accionH11 || pending) return;
+    if (cambiosPendientes) return;
+    setErrorEstado(null);
+    setConfirmacionEstado({
+      id: seleccionada.id,
+      codigo: seleccionada.codigo,
+      origen: estadoSeleccionado,
+      destino: accionH11.estado,
+    });
+  }
+
+  function cerrarConfirmacionEstado(restaurarFoco = true) {
+    if (pending) return;
+    if (dialogoEstado.current?.open) dialogoEstado.current.close();
+    setConfirmacionEstado(null);
+    if (restaurarFoco) botonAccionEstado.current?.focus();
+  }
+
+  function confirmarCambioEstado() {
+    if (
+      !confirmacionEstado ||
+      !seleccionada ||
+      !accionH11 ||
+      pending ||
+      envioEstadoBloqueado.current
+    )
+      return;
+    if (
+      seleccionada.id !== confirmacionEstado.id ||
+      estadoSeleccionado !== confirmacionEstado.origen ||
+      accionH11.estado !== confirmacionEstado.destino
+    ) {
+      setErrorEstado({
+        id: confirmacionEstado.id,
+        texto: "El estado cambió mientras confirmabas. Actualiza los datos antes de continuar.",
+      });
+      cerrarConfirmacionEstado(false);
+      router.refresh();
+      return;
+    }
+
+    envioEstadoBloqueado.current = true;
+    setErrorEstado(null);
+    startTransition(async () => {
+      let resultado;
+      try {
+        resultado = await actualizarEstadoIncidencia(
+          confirmacionEstado.id,
+          confirmacionEstado.destino,
+        );
+      } finally {
+        envioEstadoBloqueado.current = false;
+      }
+
+      if (resultado?.datos) {
+        setEstadoConfirmado({
+          id: resultado.datos.id,
+          origen: confirmacionEstado.origen,
+          estado: resultado.datos.estado,
+          esperaRefresco: true,
+        });
+        setCambiosPendientes(false);
+        setVersionEdicion((version) => version + 1);
+        setGuardadoId("");
+        setMensaje({
+          id: resultado.datos.id,
+          texto: accionH11.exito,
+        });
+        if (dialogoEstado.current?.open) dialogoEstado.current.close();
+        setConfirmacionEstado(null);
+
+        if (
+          !coincideConFiltros(
+            { estado: resultado.datos.estado, prioridad: seleccionada.prioridad },
+            estado,
+            prioridad,
+          )
+        ) {
+          router.push(
+            hrefConFiltros({
+              estado,
+              prioridad,
+              pagina: incidencias.pagina,
+              sinSeleccion: true,
+            }),
+          );
+        } else {
+          router.refresh();
+        }
+        return;
+      }
+
+      if (resultado?.status === 400) {
+        setErrorEstado({
+          id: confirmacionEstado.id,
+          texto: resultado.error ?? "La solicitud de cambio de estado no es válida.",
+        });
+        return;
+      }
+
+      if (resultado?.status === 403 || resultado?.status === 404) {
+        setErrorEstado({
+          id: confirmacionEstado.id,
+          texto:
+            resultado.status === 403
+              ? "No tienes permiso para modificar incidencias."
+              : "La incidencia ya no está disponible. Se actualizará la lista.",
+        });
+        if (dialogoEstado.current?.open) dialogoEstado.current.close();
+        setConfirmacionEstado(null);
+        if (resultado.status === 404) {
+          router.push(
+            hrefConFiltros({
+              estado,
+              prioridad,
+              pagina: incidencias.pagina,
+              sinSeleccion: true,
+            }),
+          );
+        } else {
+          router.refresh();
+        }
+        return;
+      }
+
+      if (
+        resultado?.estadoVerificado &&
+        resultado.estadoActual &&
+        ESTADOS_INCIDENCIA.includes(resultado.estadoActual)
+      ) {
+        setEstadoConfirmado({
+          id: confirmacionEstado.id,
+          origen: confirmacionEstado.origen,
+          estado: resultado.estadoActual,
+          esperaRefresco: resultado.estadoActual !== confirmacionEstado.origen,
+        });
+        if (
+          resultado.estadoActual === "RESUELTA" &&
+          resultado.status !== 409
+        ) {
+          setMensaje({
+            id: confirmacionEstado.id,
+            texto: "La incidencia quedó resuelta, pero no se pudo confirmar el aviso al residente.",
+          });
+        } else {
+          setErrorEstado({
+            id: confirmacionEstado.id,
+            texto:
+              resultado.status === 409
+                ? `El estado cambió a ${etiquetaEstado[resultado.estadoActual]}. Se actualizaron los datos.`
+                : resultado.error ?? "El estado actual se verificó y los datos se actualizaron.",
+          });
+        }
+        if (dialogoEstado.current?.open) dialogoEstado.current.close();
+        setConfirmacionEstado(null);
+        setCambiosPendientes(false);
+        setVersionEdicion((version) => version + 1);
+        setGuardadoId("");
+        router.refresh();
+        return;
+      }
+
+      setErrorEstado({
+        id: confirmacionEstado.id,
+        texto:
+          resultado?.error ??
+          "No se pudo confirmar el cambio. Actualiza los datos antes de volver a intentarlo.",
+      });
+      setVerificacionPendiente({ id: confirmacionEstado.id, lista: incidencias });
+      if (dialogoEstado.current?.open) dialogoEstado.current.close();
+      setConfirmacionEstado(null);
+      router.refresh();
+    });
+  }
+
   return (
     <div className="space-y-5">
       <header>
@@ -405,13 +695,18 @@ export function AdministrarIncidencias({
       </header>
 
       {mensaje && (!seleccionada || mensaje.id === seleccionada.id) && (
-        <p role="status" className="rounded-lg border border-success-line bg-success-soft px-4 py-3 text-sm text-success-text">
+        <p ref={anuncioEstado} tabIndex={-1} role="status" className="rounded-lg border border-success-line bg-success-soft px-4 py-3 text-sm text-success-text">
           {mensaje.texto}
         </p>
       )}
       {!seleccionada && error && (
         <p role="alert" className="rounded-lg border border-line bg-surface px-4 py-3 text-sm">
           {error.texto}
+        </p>
+      )}
+      {!seleccionada && errorEstado && (
+        <p role="alert" className="rounded-lg border border-line bg-surface px-4 py-3 text-sm">
+          {errorEstado.texto}
         </p>
       )}
       {errorInicial && (
@@ -538,7 +833,14 @@ export function AdministrarIncidencias({
                             )}
                           </td>
                           <td className="px-3 py-3">
-                            <EstadoPill estado={incidencia.estado} />
+                              <EstadoPill
+                                estado={
+                                  estadoConfirmado?.id === incidencia.id &&
+                                  incidencia.estado === estadoConfirmado.origen
+                                    ? estadoConfirmado.estado
+                                    : incidencia.estado
+                                }
+                              />
                           </td>
                         </tr>
                       );
@@ -590,7 +892,7 @@ export function AdministrarIncidencias({
                   {seleccionada.categoria} · {seleccionada.lugar}
                 </p>
               </div>
-              <EstadoPill estado={seleccionada.estado} />
+              <EstadoPill estado={incidenciaVisible!.estado} />
             </div>
 
             <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 text-sm">
@@ -600,12 +902,6 @@ export function AdministrarIncidencias({
                   {fechaIncidencia(seleccionada.creadaAt)}
                 </dd>
               </div>
-              {nombreAutor && (
-                <div>
-                  <dt className="text-xs text-muted">Reportada por</dt>
-                  <dd className="mt-1 font-medium">{nombreAutor}</dd>
-                </div>
-              )}
             </dl>
             {detalle?.descripcion && (
               <div className="mt-4">
@@ -630,9 +926,27 @@ export function AdministrarIncidencias({
               </p>
             )}
 
+            {detalle?.evidencias.length ? (
+              <section aria-labelledby="evidencias-incidencia" className="mt-4">
+                <h3 id="evidencias-incidencia" className="text-xs font-semibold text-muted">
+                  Fotos
+                </h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {detalle.evidencias.map((evidencia) => (
+                    <FotoEvidencia
+                      key={evidencia.id}
+                      incidenciaId={detalle.id}
+                      evidenciaId={evidencia.id}
+                      codigo={detalle.codigo}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
             <ControlesAsignacion
-              key={seleccionada.id}
-              incidencia={seleccionada}
+              key={`${seleccionada.id}-${incidenciaVisible!.estado}-${versionEdicion}`}
+              incidencia={incidenciaVisible!}
               responsables={responsables}
               errorResponsables={errorResponsables}
               error={error?.id === seleccionada.id ? error.texto : undefined}
@@ -641,9 +955,67 @@ export function AdministrarIncidencias({
               }
               pending={pending}
               guardado={guardadoId === seleccionada.id}
-              onEditar={editarAsignacion}
+              onCambiosPendientes={(pendiente) => {
+                setCambiosPendientes(pendiente);
+                editarAsignacion();
+              }}
               onGuardar={guardar}
             />
+
+            {accionH11 && (
+              <div className="mt-3 space-y-2">
+                {estadoConfirmado?.id === seleccionada.id &&
+                  estadoConfirmado.esperaRefresco &&
+                  seleccionada.estado === estadoConfirmado.origen && (
+                    <p role="status" className="text-xs text-muted">
+                      Actualizando el estado confirmado…
+                    </p>
+                  )}
+                <button
+                  ref={botonAccionEstado}
+                  type="button"
+                  className="button min-h-10 w-full rounded-lg py-2"
+                  disabled={
+                    pending ||
+                    cambiosPendientes ||
+                    verificacionPendienteId === seleccionada.id ||
+                    (estadoConfirmado?.id === seleccionada.id &&
+                      estadoConfirmado.esperaRefresco &&
+                      seleccionada.estado === estadoConfirmado.origen)
+                  }
+                  onClick={abrirConfirmacionEstado}
+                >
+                  {accionH11.etiqueta}
+                </button>
+                {cambiosPendientes && (
+                  <div className="rounded-lg border border-line bg-surface-alt p-3 text-xs text-muted">
+                    <p>Guarda o descarta los cambios de prioridad y responsable antes de actualizar el estado.</p>
+                    <button
+                      type="button"
+                      className="mt-2 font-semibold text-accent underline"
+                      disabled={pending}
+                      onClick={descartarCambios}
+                    >
+                      Descartar cambios
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            {errorEstado?.id === seleccionada.id && (
+              <div role="alert" className="mt-3 rounded-lg border border-line bg-surface-alt p-3 text-sm">
+                <p>{errorEstado.texto}</p>
+                {verificacionPendienteId === seleccionada.id && (
+                  <button
+                    type="button"
+                    className="mt-2 font-semibold text-accent underline"
+                    onClick={() => router.refresh()}
+                  >
+                    Revisar estado
+                  </button>
+                )}
+              </div>
+            )}
 
             <section aria-labelledby="historial-incidencia" className="mt-5 border-t border-line pt-4">
               <h3 id="historial-incidencia" className="font-semibold">
@@ -652,22 +1024,17 @@ export function AdministrarIncidencias({
               {detalle?.historial?.length ? (
                 <ol className="mt-3 space-y-3 border-l border-line pl-4">
                   {detalle.historial.map((evento, indice) => (
-                    <li key={indice} className="relative text-xs">
+                    <li key={`${evento.fecha}-${evento.campo}-${indice}`} className="relative text-xs">
                       <span aria-hidden="true" className="absolute -left-[1.32rem] top-1 size-2 rounded-full bg-accent" />
-                      <p className="font-semibold">{evento.estado ?? "Actualización"}</p>
-                      {fechasConHora(evento.fecha ?? evento.creadaAt) && (
+                      <p className="font-semibold">
+                        {descripcionMovimiento(evento.campo, evento.valorAnterior, evento.valorNuevo)}
+                      </p>
+                      {fechasConHora(evento.fecha) && (
                         <p className="mt-0.5 text-muted">
-                          {fechasConHora(evento.fecha ?? evento.creadaAt)}
+                          {fechasConHora(evento.fecha)}
                         </p>
                       )}
-                      {evento.responsable && (
-                        <p className="mt-0.5 text-muted">
-                          Responsable: {textoPersona(evento.responsable)}
-                        </p>
-                      )}
-                      {evento.detalle && (
-                        <p className="mt-0.5 text-muted">{evento.detalle}</p>
-                      )}
+                      <p className="mt-0.5 text-muted">Por: {evento.actor}</p>
                     </li>
                   ))}
                 </ol>
@@ -686,6 +1053,53 @@ export function AdministrarIncidencias({
           </aside>
         )}
       </div>
+      <dialog
+        ref={dialogoEstado}
+        aria-labelledby="confirmacion-estado-titulo"
+        aria-describedby="confirmacion-estado-descripcion"
+        className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl border border-line bg-surface p-0 shadow-2xl backdrop:bg-black/50"
+        onCancel={(event) => {
+          event.preventDefault();
+          cerrarConfirmacionEstado();
+        }}
+      >
+        {confirmacionEstado && (
+          <div className="p-5 sm:p-6">
+            <h2 id="confirmacion-estado-titulo" className="text-lg font-semibold">
+              {confirmacionEstado.destino === "RESUELTA"
+                ? "Marcar como resuelta"
+                : "Iniciar atención"}
+            </h2>
+            <p id="confirmacion-estado-descripcion" className="my-4 text-sm leading-6">
+              {accionEstadoIncidencia(confirmacionEstado.origen)?.confirmacion(
+                confirmacionEstado.codigo,
+              )}
+            </p>
+            {errorEstado?.id === confirmacionEstado.id && (
+              <p role="alert" className="field-error mb-4">{errorEstado.texto}</p>
+            )}
+            <div className="flex flex-wrap justify-end gap-3">
+              <button
+                ref={botonVolverDialogo}
+                type="button"
+                className="button-secondary"
+                disabled={pending}
+                onClick={() => cerrarConfirmacionEstado()}
+              >
+                Volver
+              </button>
+              <button
+                type="button"
+                className="button"
+                disabled={pending}
+                onClick={confirmarCambioEstado}
+              >
+                {pending ? "Guardando…" : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        )}
+      </dialog>
     </div>
   );
 }

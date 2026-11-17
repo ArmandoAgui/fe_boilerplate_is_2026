@@ -5,6 +5,8 @@ export const ESTADOS_INCIDENCIA = [
   "RESUELTA",
 ] as const;
 export type EstadoIncidencia = (typeof ESTADOS_INCIDENCIA)[number];
+export const ESTADOS_DESTINO_H11 = ["EN_PROCESO", "RESUELTA"] as const;
+export type EstadoDestinoIncidencia = (typeof ESTADOS_DESTINO_H11)[number];
 
 export const PRIORIDADES_INCIDENCIA = [
   "BAJA",
@@ -32,17 +34,34 @@ export type ListaIncidencias = {
   tamanoPagina: number;
 };
 export type IncidenciaDetalle = {
-  descripcion?: string;
-  autor?: string | { nombre?: string };
-  residente?: string | { nombre?: string };
-  creadoPor?: string | { nombre?: string };
-  historial?: {
-    estado?: string;
-    fecha?: string;
-    creadaAt?: string;
-    detalle?: string;
-    responsable?: string | { nombre?: string };
-  }[];
+  id: string;
+  codigo: string;
+  categoria: string;
+  descripcion: string;
+  lugar: string;
+  estado: EstadoIncidencia;
+  prioridad: PrioridadIncidencia | null;
+  responsable: ResponsableIncidencia | null;
+  evidencias: { id: string; url: string }[];
+  historial: HistorialIncidencia[];
+};
+export type HistorialIncidencia = {
+  campo: "ESTADO" | "PRIORIDAD" | "RESPONSABLE";
+  valorAnterior: string | null;
+  valorNuevo: string;
+  actor: string;
+  fecha: string;
+};
+export type ActualizacionEstadoIncidencia = {
+  id: string;
+  estado: EstadoDestinoIncidencia;
+  actualizadaAt: string;
+};
+export type AccionEstadoIncidencia = {
+  estado: EstadoDestinoIncidencia;
+  etiqueta: string;
+  confirmacion: (codigo: string) => string;
+  exito: string;
 };
 export type ActualizacionAsignacion = {
   prioridad?: PrioridadIncidencia;
@@ -68,6 +87,34 @@ export const etiquetaPrioridad: Record<PrioridadIncidencia, string> = {
   ALTA: "Alta",
   URGENTE: "Urgente",
 };
+
+export function accionEstadoIncidencia(
+  estado: EstadoIncidencia,
+): AccionEstadoIncidencia | undefined {
+  if (estado === "ASIGNADA")
+    return {
+      estado: "EN_PROCESO",
+      etiqueta: "Iniciar atención",
+      confirmacion: (codigo) =>
+        `¿Iniciar la atención de la incidencia ${codigo}? Pasará a En proceso.`,
+      exito: "Atención iniciada",
+    };
+  if (estado === "EN_PROCESO")
+    return {
+      estado: "RESUELTA",
+      etiqueta: "Marcar como resuelta",
+      confirmacion: (codigo) =>
+        `¿Marcar la incidencia ${codigo} como Resuelta? El residente recibirá un aviso.`,
+      exito: "Incidencia resuelta",
+    };
+  return undefined;
+}
+
+export function coincideConEstadoDestino(
+  valor: unknown,
+): valor is EstadoDestinoIncidencia {
+  return ESTADOS_DESTINO_H11.includes(valor as EstadoDestinoIncidencia);
+}
 
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
