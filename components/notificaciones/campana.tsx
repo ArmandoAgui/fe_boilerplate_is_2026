@@ -50,6 +50,15 @@ export function CampanaAvisos() {
 
   async function seleccionar(id: string, estadoAviso: "NO_LEIDA" | "LEIDA", href: string | null) {
     if (idPendiente) return;
+    if (estadoAviso === "LEIDA") {
+      if (href) {
+        setRutaAlAbrir(null);
+        router.push(href);
+      } else {
+        setAccion("Este módulo aún no está disponible.");
+      }
+      return;
+    }
     setIdPendiente(id);
     setAccion("");
     const resultado = await marcarLeido(id, estadoAviso);

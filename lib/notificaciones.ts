@@ -89,8 +89,16 @@ export function rutaDestinoAviso(aviso: Aviso) {
       return { href: "/paquetes", etiqueta: "Ver paquete" };
     case "VOTACION_ABIERTA":
       return { href: "/asambleas", etiqueta: "Ver asamblea" };
+    case "INCIDENCIA_RESUELTA":
+      if (aviso.moduloOrigen !== "INCIDENCIAS") return null;
+      return UUID_AVISO.test(aviso.referenciaId ?? "")
+        ? {
+            href: "/incidencias/" + aviso.referenciaId,
+            etiqueta: "Ver incidencia",
+          }
+        : { href: "/incidencias", etiqueta: "Mis incidencias" };
     default:
-      // H12 y H24 incorporarán los detalles privados de incidencia y comunicado.
+      // H24 incorporará el detalle privado del comunicado.
       return null;
   }
 }
