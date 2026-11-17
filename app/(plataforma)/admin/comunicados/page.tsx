@@ -26,7 +26,7 @@ export default async function Page({
     <>
       <Titulo
         titulo="Comunicados publicados"
-        detalle="Avisos oficiales y lectura entre los residentes que corresponden actualmente al alcance."
+        detalle="Publicaciones oficiales e inmutables dirigidas a las unidades correspondientes."
       />
       <Link className="button mb-5" href="/admin/comunicados/nuevo">
         Nuevo comunicado
@@ -38,11 +38,13 @@ export default async function Page({
           <table className="w-full text-left">
             <thead>
               <tr>
-                {["Título", "Alcance", "Fecha", "Lecturas"].map((t) => (
-                  <th className="p-3" key={t}>
-                    {t}
-                  </th>
-                ))}
+                {["Título", "Alcance", "Fecha", "Destinatarios actuales"].map(
+                  (t) => (
+                    <th className="p-3" key={t}>
+                      {t}
+                    </th>
+                  ),
+                )}
               </tr>
             </thead>
             <tbody>
@@ -54,9 +56,7 @@ export default async function Page({
                     {c.destino ? ` · ${c.destino}` : ""}
                   </td>
                   <td className="p-3">{fechaComunicado(c.creadoAt)}</td>
-                  <td className="p-3">
-                    Leído por {c.leidoPor} de {c.destinatarios}
-                  </td>
+                  <td className="p-3">{c.destinatarios} residentes</td>
                 </tr>
               ))}
             </tbody>

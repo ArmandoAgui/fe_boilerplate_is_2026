@@ -1,4 +1,5 @@
-export type EstadoVisita = "VIGENTE" | "USADA" | "CANCELADA" | "VENCIDA";
+export type EstadoVisita =
+  "PENDIENTE" | "VIGENTE" | "USADA" | "CANCELADA" | "VENCIDA";
 
 export type Autorizacion = {
   id: string;
@@ -21,6 +22,7 @@ export const VIGENCIA_MAXIMA_MS = 24 * HORA;
 export const ANTICIPACION_MAXIMA_MS = 30 * 24 * HORA;
 
 export const etiquetaEstado: Record<EstadoVisita, string> = {
+  PENDIENTE: "Pendiente de confirmación",
   VIGENTE: "Vigente",
   USADA: "Usada",
   CANCELADA: "Cancelada",
@@ -69,6 +71,7 @@ export function errorNombre(valor: string) {
   const v = valor.trim();
   if (v.length < 3 || v.length > 100)
     return "El nombre debe tener entre 3 y 100 caracteres";
+  if (!/^\S+\s+\S+.*$/.test(v)) return "Indica nombre y apellido";
   return "";
 }
 
@@ -101,6 +104,7 @@ export function fechaHora(iso: string) {
  * cuando otro módulo necesite los mismos estados.
  */
 export const colorEstado: Record<EstadoVisita, string> = {
+  PENDIENTE: "var(--warning)",
   VIGENTE: "#16a34a",
   USADA: "#2563eb",
   VENCIDA: "#d97706",

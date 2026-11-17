@@ -1,4 +1,5 @@
 "use client";
+import { SolicitarIngreso } from "@/components/integracion/solicitar-ingreso";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -9,8 +10,6 @@ import {
 import {
   MINIMO_BUSQUEDA,
   errorBusqueda,
-  errorDocumento,
-  errorNombre,
   etiquetaCondicion,
   fechaHora,
   hora,
@@ -31,23 +30,12 @@ export function Accesos({
   // undefined = todavía no se ha buscado; [] = se buscó y no hubo nada.
   const [resultados, setResultados] = useState<AutorizacionBuscada[]>();
   const [manual, setManual] = useState(false);
-  const [nombre, setNombre] = useState("");
-  const [documento, setDocumento] = useState("");
-  const [unidadId, setUnidadId] = useState("");
-  const [enviado, setEnviado] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
   const [pendiente, startTransition] = useTransition();
   const campoBusqueda = useRef<HTMLInputElement>(null);
 
   const errorTexto = errorBusqueda(texto);
-  const errores = {
-    nombre: errorNombre(nombre),
-    documento: errorDocumento(documento),
-    unidadId: unidadId ? "" : "Seleccione una unidad de destino",
-  };
-  const manualInvalido = Object.values(errores).some(Boolean);
-
   function limpiar() {
     setMensaje("");
     setError("");
@@ -74,34 +62,9 @@ export function Accesos({
         setError(resultado.error);
         return;
       }
-      // La autorización es de uso único: ya no sirve, así que sale de la lista
-      // en vez de quedar con un botón que devolvería 409.
+      // Se oculta mientras el visitante está dentro; puede reutilizarse tras registrar salida.
       setResultados((prev) => prev?.filter((x) => x.id !== a.id));
       setMensaje(`Entrada registrada · ${resultado.nombre}`);
-      router.refresh();
-    });
-  }
-
-  function entrarSinAutorizacion() {
-    setEnviado(true);
-    if (manualInvalido) return;
-    limpiar();
-    startTransition(async () => {
-      const resultado = await registrarEntrada({
-        visitanteNombre: nombre.trim(),
-        visitanteDocumento: documento.trim(),
-        unidadId,
-      });
-      if (resultado.error) {
-        setError(resultado.error);
-        return;
-      }
-      setMensaje(`Entrada registrada · ${resultado.nombre}`);
-      setNombre("");
-      setDocumento("");
-      setUnidadId("");
-      setEnviado(false);
-      setManual(false);
       router.refresh();
     });
   }
@@ -215,113 +178,16 @@ export function Accesos({
         )}
       </section>
 
-      {manual && (
-        <section className="panel mb-6" aria-labelledby="manual-titulo">
-          <h2 id="manual-titulo" className="text-xl font-semibold">
-            Visita sin autorización
-          </h2>
-          <p className="mt-2 text-muted">
-            Queda registrada con la condición “Sin autorización”.
-          </p>
-          <form
-            className="mt-5 grid gap-5 sm:grid-cols-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              entrarSinAutorizacion();
-            }}
-          >
-            <div>
-              <label className="label" htmlFor="manual-nombre">
-                Nombre del visitante
-              </label>
-              <input
-                id="manual-nombre"
-                className="input"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                aria-describedby="manual-nombre-error"
-                aria-invalid={enviado && Boolean(errores.nombre)}
-                autoComplete="off"
-              />
-              <p
-                id="manual-nombre-error"
-                role="alert"
-                className="field-error"
-              >
-                {enviado ? errores.nombre : ""}
-              </p>
-            </div>
-            <div>
-              <label className="label" htmlFor="manual-documento">
-                Documento
-              </label>
-              <input
-                id="manual-documento"
-                className="input"
-                value={documento}
-                onChange={(e) => setDocumento(e.target.value)}
-                aria-describedby="manual-documento-error"
-                aria-invalid={enviado && Boolean(errores.documento)}
-                autoComplete="off"
-              />
-              <p
-                id="manual-documento-error"
-                role="alert"
-                className="field-error"
-              >
-                {enviado ? errores.documento : ""}
-              </p>
-            </div>
-            <div>
-              <label className="label" htmlFor="manual-unidad">
-                Unidad de destino
-              </label>
-              <select
-                id="manual-unidad"
-                className="input"
-                value={unidadId}
-                onChange={(e) => setUnidadId(e.target.value)}
-                aria-describedby="manual-unidad-error"
-                aria-invalid={enviado && Boolean(errores.unidadId)}
-              >
-                <option value="">Seleccione una unidad</option>
-                {unidades.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.codigo}
-                  </option>
-                ))}
-              </select>
-              <p
-                id="manual-unidad-error"
-                role="alert"
-                className="field-error"
-              >
-                {enviado ? errores.unidadId : ""}
-              </p>
-            </div>
-            <div className="flex items-end gap-3">
-              <button className="button" type="submit" disabled={pendiente}>
-                {pendiente ? "Registrando…" : "Registrar entrada"}
-              </button>
-              <button
-                className="button-secondary"
-                type="button"
-                disabled={pendiente}
-                onClick={() => setManual(false)}
-              >
-                Volver
-              </button>
-            </div>
-          </form>
-        </section>
-      )}
+      {manual && <SolicitarIngreso unidades={unidades} />}
 
       <section className="panel p-0" aria-labelledby="dentro-titulo">
         <div className="flex flex-wrap items-center justify-between gap-3 p-5">
           <h2 id="dentro-titulo" className="text-xl font-semibold">
             Dentro ahora
           </h2>
-          <p className="text-sm text-muted">Visitantes dentro: {presentes.length}</p>
+          <p className="text-sm text-muted">
+            Visitantes dentro: {presentes.length}
+          </p>
         </div>
         {presentes.length === 0 ? (
           <p className="px-5 pb-5 text-muted">
@@ -335,13 +201,18 @@ export function Accesos({
               </caption>
               <thead>
                 <tr className="border-t border-line">
-                  {["Visitante", "Documento", "Unidad", "Ingreso", "Condición", ""].map(
-                    (t, i) => (
-                      <th key={t || i} scope="col" className="p-4 font-medium">
-                        {t || <span className="sr-only">Acciones</span>}
-                      </th>
-                    ),
-                  )}
+                  {[
+                    "Visitante",
+                    "Documento",
+                    "Unidad",
+                    "Ingreso",
+                    "Condición",
+                    "",
+                  ].map((t, i) => (
+                    <th key={t || i} scope="col" className="p-4 font-medium">
+                      {t || <span className="sr-only">Acciones</span>}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>

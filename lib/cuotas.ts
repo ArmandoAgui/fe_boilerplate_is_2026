@@ -54,13 +54,15 @@ export function dinero(monto: string): string {
 
 // ---------- H1: estado de cuenta ----------
 
-export type EstadoCuota = "PENDIENTE" | "VENCIDA" | "PAGADA";
+export type EstadoCuota = "PENDIENTE" | "VENCIDA" | "PAGADA" | "ANULADA";
 
 export type Cuota = {
   id: string;
   concepto: string;
   periodo: string;
   monto: string;
+  montoBase?: string;
+  recargo?: string;
   fechaVencimiento: string; // AAAA-MM-DD
   estado: EstadoCuota;
 };
@@ -78,12 +80,18 @@ export type ListaCuotas = {
   tamanoPagina: number;
 };
 
-export const ESTADOS_CUOTA: EstadoCuota[] = ["PENDIENTE", "VENCIDA", "PAGADA"];
+export const ESTADOS_CUOTA: EstadoCuota[] = [
+  "PENDIENTE",
+  "VENCIDA",
+  "PAGADA",
+  "ANULADA",
+];
 
 export const etiquetaEstadoCuota: Record<EstadoCuota, string> = {
   PENDIENTE: "Pendiente",
   VENCIDA: "Vencida",
   PAGADA: "Pagada",
+  ANULADA: "Anulada",
 };
 
 // Mismos tonos que usa Visitas para estados equivalentes, para que el sistema
@@ -92,6 +100,7 @@ export const colorEstadoCuota: Record<EstadoCuota, string> = {
   PENDIENTE: "#2563eb",
   VENCIDA: "#d97706",
   PAGADA: "#16a34a",
+  ANULADA: "#64748b",
 };
 
 /** "2026-11-10" → "10/11/2026", sin pasar por Date para no correr el día. */
@@ -235,7 +244,11 @@ export function torresDe(filas: FilaMorosidad[]): string[] {
 export function sumarMontos(montos: string[]): string {
   const centavos = montos.reduce((total, monto) => {
     const [entero, decimales = "0"] = monto.split(".");
-    return total + Number(entero) * 100 + Number(decimales.padEnd(2, "0").slice(0, 2));
+    return (
+      total +
+      Number(entero) * 100 +
+      Number(decimales.padEnd(2, "0").slice(0, 2))
+    );
   }, 0);
   return `${Math.floor(centavos / 100)}.${String(centavos % 100).padStart(2, "0")}`;
 }

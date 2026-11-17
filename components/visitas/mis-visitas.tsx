@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { cancelarAutorizacion } from "@/app/actions/visitas";
+import { AprobarIngreso } from "@/components/integracion/solicitar-ingreso";
 import { Estado } from "@/components/visitas/ui";
 import {
   fechaHora,
@@ -98,7 +99,10 @@ export function MisVisitas({
                   const estado =
                     a.estado === "VIGENTE" && !vigente ? "VENCIDA" : a.estado;
                   return (
-                    <tr key={a.id} className="border-b border-line last:border-0">
+                    <tr
+                      key={a.id}
+                      className="border-b border-line last:border-0"
+                    >
                       <th scope="row" className="p-4 font-normal">
                         {a.visitanteNombre}
                       </th>
@@ -113,7 +117,13 @@ export function MisVisitas({
                         <Estado estado={estado} />
                       </td>
                       <td className="p-4 text-right">
-                        {vigente && (
+                        {a.estado === "PENDIENTE" &&
+                          new Date(a.fin).getTime() > ahora && (
+                            <AprobarIngreso id={a.id} />
+                          )}
+                        {(vigente ||
+                          (a.estado === "PENDIENTE" &&
+                            new Date(a.fin).getTime() > ahora)) && (
                           <button
                             className="button-secondary text-[var(--danger)]"
                             aria-label={`Cancelar la autorización de ${a.visitanteNombre}`}

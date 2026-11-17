@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+*.log
+*.tsbuildinfo
+coverage
+test-results
+playwright-report
+.vscode
+.idea
+.DS_Store
+docs
+e2e
+tests

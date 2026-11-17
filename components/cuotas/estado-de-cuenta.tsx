@@ -137,17 +137,22 @@ export function EstadoDeCuenta({
               </caption>
               <thead>
                 <tr className="border-b border-line">
-                  {["Concepto", "Período", "Monto", "Vencimiento", "Estado", ""].map(
-                    (t, i) => (
-                      <th
-                        key={t || i}
-                        scope="col"
-                        className={`p-4 font-medium${t === "Monto" ? " text-right" : ""}`}
-                      >
-                        {t || <span className="sr-only">Acciones</span>}
-                      </th>
-                    ),
-                  )}
+                  {[
+                    "Concepto",
+                    "Período",
+                    "Monto",
+                    "Vencimiento",
+                    "Estado",
+                    "",
+                  ].map((t, i) => (
+                    <th
+                      key={t || i}
+                      scope="col"
+                      className={`p-4 font-medium${t === "Monto" ? " text-right" : ""}`}
+                    >
+                      {t || <span className="sr-only">Acciones</span>}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -167,7 +172,7 @@ export function EstadoDeCuenta({
                       <EstadoCuotaBadge estado={c.estado} />
                     </td>
                     <td className="p-4 text-right whitespace-nowrap">
-                      {c.estado !== "PAGADA" && (
+                      {!["PAGADA", "ANULADA"].includes(c.estado) && (
                         <Link
                           className="mr-4 font-semibold underline"
                           href={`/cuotas/${c.id}/pagar`}
@@ -195,14 +200,18 @@ export function EstadoDeCuenta({
                 <button
                   className="button-secondary"
                   disabled={lista.pagina <= 1}
-                  onClick={() => router.push(urlCuotas(filtros, lista.pagina - 1))}
+                  onClick={() =>
+                    router.push(urlCuotas(filtros, lista.pagina - 1))
+                  }
                 >
                   Anterior
                 </button>
                 <button
                   className="button-secondary"
                   disabled={lista.pagina >= paginas}
-                  onClick={() => router.push(urlCuotas(filtros, lista.pagina + 1))}
+                  onClick={() =>
+                    router.push(urlCuotas(filtros, lista.pagina + 1))
+                  }
                 >
                   Siguiente
                 </button>

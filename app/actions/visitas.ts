@@ -22,7 +22,7 @@ function fallo(error: unknown): Resultado {
 export async function crearAutorizacion(data: {
   unidadId: string;
   visitanteNombre: string;
-  visitanteDocumento: string;
+  visitanteDocumento?: string;
   inicio: string;
   fin: string;
 }): Promise<Resultado> {
@@ -36,17 +36,14 @@ export async function crearAutorizacion(data: {
     return fallo(error);
   }
   revalidatePath("/visitas");
-  redirect(
-    `/visitas?autorizada=${encodeURIComponent(creada.visitanteNombre)}`,
-  );
+  redirect(`/visitas?autorizada=${encodeURIComponent(creada.visitanteNombre)}`);
 }
 
 export async function cancelarAutorizacion(id: string): Promise<Resultado> {
   try {
-    await api(
-      `visitas/autorizaciones/${encodeURIComponent(id)}/cancelacion`,
-      { method: "PATCH" },
-    );
+    await api(`visitas/autorizaciones/${encodeURIComponent(id)}/cancelacion`, {
+      method: "PATCH",
+    });
   } catch (error) {
     return fallo(error);
   }
@@ -79,7 +76,7 @@ export async function registrarEntrada(
     | { autorizacionId: string }
     | {
         visitanteNombre: string;
-        visitanteDocumento: string;
+        visitanteDocumento?: string;
         unidadId: string;
       },
 ): Promise<Resultado & { nombre?: string }> {

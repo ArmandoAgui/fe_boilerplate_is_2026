@@ -35,7 +35,9 @@ export default async function Page({
   const datos: [string, React.ReactNode][] = [
     ["Concepto", cuota.concepto],
     ["Período", cuota.periodo],
-    ["Monto", dinero(cuota.monto)],
+    ["Monto base", dinero(cuota.montoBase ?? cuota.monto)],
+    ["Recargo", dinero(cuota.recargo ?? "0.00")],
+    ["Total", dinero(cuota.monto)],
     ["Vencimiento", fechaCorta(cuota.fechaVencimiento)],
     ["Estado", <EstadoCuotaBadge key="estado" estado={cuota.estado} />],
     [
@@ -51,7 +53,7 @@ export default async function Page({
         detalle={`${cuota.concepto}, período ${cuota.periodo}.`}
         accion={
           <div className="flex flex-wrap gap-3">
-            {cuota.estado !== "PAGADA" && (
+            {!["PAGADA", "ANULADA"].includes(cuota.estado) && (
               <Link className="button" href={`/cuotas/${cuota.id}/pagar`}>
                 Pagar {dinero(cuota.monto)}
               </Link>

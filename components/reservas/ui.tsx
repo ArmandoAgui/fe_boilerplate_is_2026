@@ -53,6 +53,7 @@ const enlacesResidente = [
   { texto: "Mis paquetes", href: "/paquetes" },
   { texto: "Asambleas", href: "/asambleas" },
   { texto: "Incidencias", href: "/incidencias" },
+  { texto: "Comunicados", href: "/comunicados" },
   { texto: "Estado de cuenta", href: "/cuotas" },
   { texto: "Avisos", href: "/avisos" },
   { texto: "Directorio", href: "/directorio" },
@@ -79,7 +80,9 @@ export function Navegacion({
         }
       >
         {enlacesResidente.map((enlace) => {
-          const actual = actualHref === enlace.href || actualHref?.startsWith(`${enlace.href}/`);
+          const actual =
+            actualHref === enlace.href ||
+            actualHref?.startsWith(`${enlace.href}/`);
           const estiloLateral = variante === "lateral";
           return (
             <Link
@@ -108,11 +111,13 @@ export function Navegacion({
     >
       <Link href="/">Inicio</Link>
       {rol !== "SEGURIDAD" && <Link href="/areas">Áreas comunes</Link>}
+
       {rol === "SEGURIDAD" && (
         <>
           <Link href="/seguridad/accesos">Control de accesos</Link>
           <Link href="/seguridad/presentes">Visitantes presentes</Link>
-          <Link href="/seguridad/paquetes/nuevo">Recibir paquete</Link>
+          <Link href="/seguridad/paquetes">Paquetería</Link>
+          <Link href="/directorio">Directorio</Link>
         </>
       )}
       {rol === "ADMINISTRADOR" && (
@@ -123,7 +128,11 @@ export function Navegacion({
           <Link href="/admin/reservas">Aprobar reservas</Link>
           <Link href="/admin/cuotas/generar">Generar cuotas</Link>
           <Link href="/admin/morosidad">Morosidad</Link>
+          <Link href="/admin/cuotas">Ajustar cuotas</Link>
+          <Link href="/admin/residentes">Residentes y unidades</Link>
           <Link href="/admin/reportes">Reportes</Link>
+          <Link href="/directorio">Directorio</Link>
+          <Link href="/seguridad/paquetes">Paquetería</Link>
           <Link href="/seguridad/presentes">Visitantes presentes</Link>
           <Link href="/admin/asambleas/nueva">Convocar asamblea</Link>
           <Link href="/asambleas">Asambleas</Link>

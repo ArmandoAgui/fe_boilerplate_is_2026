@@ -3,10 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MisVisitas } from "@/components/visitas/mis-visitas";
 import { NuevaVisita } from "@/components/visitas/nueva-visita";
 import { SinPermiso } from "@/components/visitas/ui";
-import {
-  cancelarAutorizacion,
-  crearAutorizacion,
-} from "@/app/actions/visitas";
+import { cancelarAutorizacion, crearAutorizacion } from "@/app/actions/visitas";
 import {
   HORA,
   aISO,
@@ -116,7 +113,9 @@ describe("Mis visitantes", () => {
     "no ofrece cancelar una autorización %s",
     (estado) => {
       render(<MisVisitas lista={lista([{ ...base, estado }])} />);
-      expect(screen.queryByRole("button", { name: /Cancelar la autorización de/ })).toBeNull();
+      expect(
+        screen.queryByRole("button", { name: /Cancelar la autorización de/ }),
+      ).toBeNull();
     },
   );
 
@@ -133,13 +132,17 @@ describe("Mis visitantes", () => {
         ])}
       />,
     );
-    expect(screen.queryByRole("button", { name: /Cancelar la autorización de/ })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /Cancelar la autorización de/ }),
+    ).toBeNull();
   });
 
   it("confirma con el nombre del visitante antes de cancelar", async () => {
     vi.mocked(cancelarAutorizacion).mockResolvedValue({ ok: true });
     render(<MisVisitas lista={lista([base])} />);
-    fireEvent.click(screen.getByRole("button", { name: /Cancelar la autorización de/ }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Cancelar la autorización de/ }),
+    );
     expect(
       screen.getByText("¿Cancelar la autorización de Juan Perez?"),
     ).toBeVisible();
@@ -159,7 +162,9 @@ describe("Mis visitantes", () => {
       status: 409,
     });
     render(<MisVisitas lista={lista([base])} />);
-    fireEvent.click(screen.getByRole("button", { name: /Cancelar la autorización de/ }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Cancelar la autorización de/ }),
+    );
     fireEvent.click(
       screen.getByRole("button", { name: "Cancelar autorización" }),
     );
@@ -182,7 +187,7 @@ describe("Autorizar una visita", () => {
     render(<NuevaVisita unidades={unidades} />);
     expect(
       screen.getByText(
-        "Vigencia máxima: 24 horas. La autorización sirve para un solo ingreso.",
+        "Vigencia máxima: 24 horas. La autorización permite múltiples ingresos durante su vigencia.",
       ),
     ).toBeVisible();
   });
@@ -197,7 +202,7 @@ describe("Autorizar una visita", () => {
     fireEvent.change(screen.getByLabelText("Nombre del visitante"), {
       target: { value: "Juan Perez" },
     });
-    fireEvent.change(screen.getByLabelText("Documento"), {
+    fireEvent.change(screen.getByLabelText("Documento (opcional)"), {
       target: { value: "012345678" },
     });
     fireEvent.change(screen.getByLabelText("Inicio"), {
@@ -237,7 +242,9 @@ describe("Autorizar una visita", () => {
       expect(guardar).toBeEnabled();
       reloj.mockReturnValue(inicial + 3 * HORA);
       fireEvent.click(guardar);
-      expect(screen.getByText("El inicio no puede ser anterior a ahora")).toBeVisible();
+      expect(
+        screen.getByText("El inicio no puede ser anterior a ahora"),
+      ).toBeVisible();
       expect(crearAutorizacion).not.toHaveBeenCalled();
     } finally {
       reloj.mockRestore();
@@ -266,3 +273,10 @@ describe("Sin permiso", () => {
     expect(screen.getByRole("link", { name: "Ir al inicio" })).toBeVisible();
   });
 });
+
+vi.mock("@/app/actions/integracion", () => ({
+  operacion: vi.fn().mockResolvedValue({ ok: true }),
+  cargarResidentes: vi
+    .fn()
+    .mockResolvedValue({ datos: [{ id: "r1", nombre: "Ana Perez" }] }),
+}));

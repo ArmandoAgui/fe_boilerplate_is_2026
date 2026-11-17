@@ -1,79 +1,37 @@
-import { ApiError, api } from "@/lib/api";
-import { esUuid } from "@/lib/incidencias-admin";
 import { getSession } from "@/lib/session";
-import type { Usuario } from "@/lib/reservas";
-
-function respuestaError(status: number, message: string) {
-  return Response.json(
-    { message },
+import { esUuid } from "@/lib/incidencias-admin";
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string; evidenciaId: string }> },
+) {
+  const token = await getSession();
+  if (!token) return new Response("Sesión requerida", { status: 401 });
+  const { id, evidenciaId } = await params;
+  if (!esUuid(id) || !esUuid(evidenciaId))
+    return new Response("No encontrada", { status: 404 });
+  const base = process.env.API_URL;
+  if (!base) return new Response("Servicio no disponible", { status: 503 });
+  const r = await fetch(
+    new URL(
+      `incidencias/${id}/evidencias/${evidenciaId}`,
+      base.replace(/\/?$/, "/"),
+    ),
     {
-      status,
-      headers: { "Cache-Control": "private, no-store" },
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15000),
     },
   );
-}
-
-export async function GET(
-  _request: Request,
-  context: { params: Promise<{ id: string; evidenciaId: string }> },
-) {
-  const { id, evidenciaId } = await context.params;
-  if (!esUuid(id) || !esUuid(evidenciaId))
-    return respuestaError(400, "La evidencia solicitada no es válida.");
-
-  const token = await getSession();
-  if (!token) return respuestaError(401, "La sesión no está disponible.");
-
-  try {
-    const usuario = await api<Usuario>("auth/me", undefined, {
-      onUnauthorized: "throw",
+  if (!r.ok)
+    return new Response("No se pudo consultar la fotografía", {
+      status: r.status,
     });
-    if (usuario.rol !== "ADMINISTRADOR")
-      return respuestaError(403, "No tienes permiso para consultar esta evidencia.");
-
-    const base = process.env.API_URL;
-    if (!base) return respuestaError(500, "No se pudo consultar la evidencia.");
-
-    const upstream = await fetch(
-      new URL(
-        `incidencias/${id}/evidencias/${evidenciaId}`,
-        base.replace(/\/?$/, "/"),
-      ),
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store",
-        redirect: "manual",
-        signal: AbortSignal.timeout(15_000),
-      },
-    );
-    if (!upstream.ok)
-      return respuestaError(
-        upstream.status >= 400 && upstream.status < 500
-          ? upstream.status
-          : 502,
-        "No se pudo consultar la evidencia.",
-      );
-
-    const contentType = upstream.headers.get("content-type")?.split(";")[0];
-    if (contentType !== "image/jpeg" && contentType !== "image/png")
-      return respuestaError(502, "El formato de la evidencia no es válido.");
-
-    return new Response(await upstream.arrayBuffer(), {
-      status: 200,
-      headers: {
-        "Content-Type": contentType,
-        "Cache-Control": "private, no-store",
-        "X-Content-Type-Options": "nosniff",
-      },
-    });
-  } catch (error) {
-    if (error instanceof ApiError)
-      return respuestaError(
-        error.status === 401 ? 401 : error.status === 403 ? 403 : 502,
-        error.status === 401
-          ? "La sesión expiró. Inicia sesión de nuevo."
-          : "No se pudo consultar la evidencia.",
-      );
-    return respuestaError(502, "No se pudo conectar con el servicio de incidencias.");
-  }
+  return new Response(r.body, {
+    headers: {
+      "Content-Type":
+        r.headers.get("Content-Type") ?? "application/octet-stream",
+      "Cache-Control": "private, no-store",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }

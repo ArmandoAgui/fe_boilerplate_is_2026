@@ -43,7 +43,7 @@ export default async function Page({
   return (
     <>
       <TituloReportes
-        titulo="Panel de indicadores"
+        titulo="Indicadores del condominio"
         detalle="Morosidad, uso de áreas, incidencias y participación del condominio en el período elegido."
       />
       {/* key: al cambiar la URL el filtro vuelve a tomar las fechas aplicadas. */}
@@ -56,6 +56,10 @@ export default async function Page({
       {resumen && (
         <section aria-label="Indicadores" aria-live="polite">
           <TarjetasIndicadores resumen={resumen} />
+          <div className="mt-5 flex flex-wrap gap-3">
+            <a className="button" href={`/api/reportes/pdf?${new URLSearchParams({ desde, hasta })}`}>Descargar PDF</a>
+            <a className="button button-secondary" href={`/admin/reportes/compartir?${new URLSearchParams({ desde, hasta })}`}>Compartir reporte</a>
+          </div>
           <p className="mt-4 text-xs text-muted">
             Calculado el {fechaHoraLocal(resumen.generadoAt)} con los datos
             actuales de cada módulo.
