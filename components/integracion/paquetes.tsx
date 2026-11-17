@@ -126,7 +126,14 @@ export function GestionPaquetes({
         </div>
       )}
       <dialog ref={dialog} className="panel max-w-lg backdrop:bg-slate-950/60">
-        <form action={enviar} key={seleccion?.id + modo} className="space-y-4">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            enviar(new FormData(event.currentTarget));
+          }}
+          key={seleccion?.id + modo}
+          className="space-y-4"
+        >
           <h2 className="text-xl font-semibold">
             {modo === "entrega" ? "Entregar" : "Corregir"} {seleccion?.codigo}
           </h2>

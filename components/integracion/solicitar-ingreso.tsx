@@ -46,6 +46,7 @@ export function SolicitarIngreso({
           <select
             className="field mt-1"
             required
+            disabled={pending}
             value={unidad}
             onChange={(e) => {
               const id = e.target.value;

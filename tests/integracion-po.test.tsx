@@ -85,9 +85,7 @@ describe("Reglas PO en la interfaz", () => {
         ]}
       />,
     );
-    fireEvent.click(
-      screen.getByRole("button", { name: "Entregar" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Entregar" }));
     await screen.findByRole("option", { name: "Ana Perez · ana@po.test" });
     expect(
       await screen.findByRole("button", { name: "Confirmar" }),
@@ -95,9 +93,7 @@ describe("Reglas PO en la interfaz", () => {
     fireEvent.change(screen.getByLabelText("Residente que retira"), {
       target: { value: "r1" },
     });
-    fireEvent.click(
-      screen.getByRole("button", { name: "Confirmar" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
     await waitFor(() =>
       expect(operacion).toHaveBeenCalledWith("entrega", "p1", {
         residenteId: "r1",
@@ -107,5 +103,37 @@ describe("Reglas PO en la interfaz", () => {
       "El paquete ya no está pendiente",
     );
     expect(screen.getByRole("dialog")).toHaveAttribute("open");
+  });
+  it("conserva la corrección del paquete cuando falla el servidor", async () => {
+    vi.mocked(operacion).mockResolvedValueOnce({ error: "Reintenta" });
+    render(
+      <GestionPaquetes
+        puedeEntregar
+        datos={[
+          {
+            id: "p2",
+            codigo: "PAQ-2",
+            empresa: "Original",
+            descripcion: "Original",
+            unidadCodigo: "A-1",
+            estado: "PENDIENTE",
+            recibidoAt: "2026-11-16",
+          },
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Corregir o anular" }));
+    fireEvent.change(screen.getByLabelText("Empresa"), {
+      target: { value: "Editada" },
+    });
+    fireEvent.change(screen.getByLabelText("Motivo"), {
+      target: { value: "Motivo corregido" },
+    });
+    fireEvent.click(screen.getByLabelText("Anular registro por error"));
+    fireEvent.submit(screen.getByLabelText("Empresa").closest("form")!);
+    expect(await screen.findByText("Reintenta")).toBeInTheDocument();
+    expect(screen.getByLabelText("Empresa")).toHaveValue("Editada");
+    expect(screen.getByLabelText("Motivo")).toHaveValue("Motivo corregido");
+    expect(screen.getByLabelText("Anular registro por error")).toBeChecked();
   });
 });
