@@ -1,0 +1,194 @@
+"use client";
+import Link from "next/link";
+import { useEffect, useState, useTransition } from "react";
+import { emitirVoto, estadoVoto } from "@/app/actions/asamblea";
+import type { Asamblea, Unidad } from "@/lib/asambleas";
+function fechaVoto(fecha: string | null) {
+  return fecha
+    ? new Date(fecha).toLocaleString("es-SV", {
+        timeZone: "America/El_Salvador",
+      })
+    : "";
+}
+export function ListaAsambleas({
+  asambleas,
+  unidades,
+  rol,
+}: {
+  asambleas: Asamblea[];
+  unidades: Unidad[];
+  rol: string;
+}) {
+  const [unidad, setUnidad] = useState(unidades[0]?.id ?? "");
+  const [seleccion, setSeleccion] = useState<Record<string, string>>({});
+  const [votos, setVotos] = useState<
+    Record<string, { yaVoto: boolean; fecha: string | null }>
+  >({});
+  const [mensaje, setMensaje] = useState("");
+  const [error, setError] = useState("");
+  const [pending, start] = useTransition();
+  useEffect(() => {
+    if (rol !== "RESIDENTE" || !unidad) return;
+    let vigente = true;
+    Promise.all(
+      asambleas
+        .flatMap((a) => a.temas)
+        .map(async (t) => {
+          const r = await estadoVoto(t.id, unidad);
+          if (r.ok && r.data)
+            return [
+              t.id,
+              r.data as { yaVoto: boolean; fecha: string | null },
+            ] as const;
+          throw new Error(r.error ?? "No se pudo consultar la participación");
+        }),
+    )
+      .then((datos) => {
+        if (vigente) setVotos(Object.fromEntries(datos));
+      })
+      .catch((e) => {
+        if (vigente) setError(e.message);
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [asambleas, unidad, rol]);
+  async function estado(temaId: string) {
+    const r = await estadoVoto(temaId, unidad);
+    if (r.ok && r.data) {
+      setVotos((p) => ({
+        ...p,
+        [temaId]: r.data as { yaVoto: boolean; fecha: string | null },
+      }));
+    }
+  }
+  async function votar(temaId: string) {
+    const opcionId = seleccion[temaId];
+    if (!opcionId) return;
+    if (
+      !window.confirm("Esta acción no se puede deshacer. ¿Confirmar tu voto?")
+    )
+      return;
+    start(async () => {
+      const r = await emitirVoto(temaId, { unidadId: unidad, opcionId });
+      if (r.error) {
+        setError(r.status === 409 ? "Tu unidad ya votó en este tema" : r.error);
+        return;
+      }
+      setMensaje("Voto registrado");
+      setError("");
+      await estado(temaId);
+    });
+  }
+  if (!asambleas.length)
+    return <p className="panel">No hay asambleas convocadas</p>;
+  return (
+    <section className="space-y-5">
+      {rol === "RESIDENTE" && unidades.length > 1 && (
+        <label>
+          Unidad{" "}
+          <select
+            className="field ml-2"
+            value={unidad}
+            onChange={(e) => {
+              setUnidad(e.target.value);
+              setVotos({});
+            }}
+          >
+            {unidades.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.codigo}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      {error && (
+        <p role="alert" className="field-error">
+          {error}
+        </p>
+      )}
+      {mensaje && <p role="status">{mensaje}</p>}
+      {asambleas.map((a) => (
+        <article key={a.id} className="panel">
+          <h2 className="text-xl font-semibold">
+            <Link href={`/asambleas/${a.id}`}>{a.titulo}</Link>
+          </h2>
+          {rol === "ADMINISTRADOR" && (
+            <Link
+              className="button-secondary mt-2"
+              href={`/admin/asambleas/${a.id}/resultados`}
+            >
+              Ver resultados
+            </Link>
+          )}
+          <p className="my-2 text-muted">
+            {new Date(a.fechaAt).toLocaleString("es-SV", {
+              timeZone: "America/El_Salvador",
+            })}
+          </p>
+          {a.descripcion && <p>{a.descripcion}</p>}
+          {a.temas.map((t) => (
+            <section key={t.id} className="mt-5 border-t border-line pt-4">
+              <h3 className="font-semibold">{t.pregunta}</h3>
+              <p className="text-sm text-muted">
+                Estado:{" "}
+                {t.estado === "ABIERTO"
+                  ? "Abierto"
+                  : t.estado === "CERRADO"
+                    ? "Cerrado"
+                    : "Publicado"}
+              </p>
+              {rol === "RESIDENTE" && (
+                <>
+                  <button
+                    className="button-secondary my-2"
+                    onClick={() => estado(t.id)}
+                  >
+                    Consultar estado de mi unidad
+                  </button>
+                  {votos[t.id]?.yaVoto ? (
+                    <p role="status">
+                      Tu unidad ya votó el {fechaVoto(votos[t.id].fecha)}
+                    </p>
+                  ) : (
+                    <>
+                      <div className="my-3 space-y-2">
+                        {t.opciones.map((o) => (
+                          <label key={o.id} className="flex gap-2">
+                            <input
+                              type="radio"
+                              name={`voto-${t.id}`}
+                              disabled={t.estado !== "ABIERTO" || !votos[t.id]}
+                              checked={seleccion[t.id] === o.id}
+                              onChange={() =>
+                                setSeleccion((p) => ({ ...p, [t.id]: o.id }))
+                              }
+                            />
+                            {o.texto}
+                          </label>
+                        ))}
+                      </div>
+                      <button
+                        className="button"
+                        disabled={
+                          pending ||
+                          t.estado !== "ABIERTO" ||
+                          !votos[t.id] ||
+                          !seleccion[t.id]
+                        }
+                        onClick={() => votar(t.id)}
+                      >
+                        Votar
+                      </button>
+                    </>
+                  )}
+                </>
+              )}
+            </section>
+          ))}
+        </article>
+      ))}
+    </section>
+  );
+}
