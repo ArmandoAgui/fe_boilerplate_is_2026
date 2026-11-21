@@ -1,6 +1,6 @@
 # SONNET 5 — Frontend
 
-Interfaz Next.js/React de administración de condominio. **Proyecto asignado:** Proyecto 1, SONNET 5. **Curso:** Ingeniería de Software UCA, ciclo 02/2026, Sección 01. Versión preparada: 1.0.0.
+Interfaz Next.js/React de administración de condominio. **Proyecto asignado:** Proyecto 1, SONNET 5. **Curso:** Ingeniería de Software UCA, ciclo 02/2026, Sección 01. Versión frontend: 1.0.1 (hotfix de contraste de H29). Backend compatible: v1.0.0.
 
 ## Ambiente desplegado
 
