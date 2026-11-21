@@ -63,38 +63,29 @@ const enlacesResidente = [
 export function Navegacion({
   rol,
   actualHref,
-  variante = "default",
 }: {
   rol: Rol;
   actualHref?: string;
-  variante?: "default" | "lateral";
 }) {
   if (rol === "RESIDENTE")
     return (
       <nav
         aria-label="Principal"
-        className={
-          variante === "lateral"
-            ? "nav-residente-lateral flex min-w-max gap-1 p-2 lg:min-w-0 lg:flex-col lg:gap-0 lg:px-0 lg:py-3"
-            : "default-navigation flex flex-wrap gap-4 text-sm font-medium"
-        }
+        className="default-navigation flex flex-wrap gap-4 text-sm font-medium"
       >
         {enlacesResidente.map((enlace) => {
           const actual =
             actualHref === enlace.href ||
             actualHref?.startsWith(`${enlace.href}/`);
-          const estiloLateral = variante === "lateral";
           return (
             <Link
               key={enlace.href}
               href={enlace.href}
               aria-current={actual ? "page" : undefined}
               className={
-                estiloLateral
-                  ? `flex min-h-10 items-center whitespace-nowrap border-l-2 px-3 text-xs no-underline transition-colors lg:px-5 ${actual ? "border-amber-300 bg-white/10 font-semibold text-white" : "border-transparent text-white/75 hover:bg-white/5 hover:text-white"}`
-                  : actual
-                    ? "border-b-accent! font-semibold text-accent"
-                    : undefined
+                actual
+                  ? "border-b-accent! font-semibold text-accent"
+                  : undefined
               }
             >
               {enlace.texto}
