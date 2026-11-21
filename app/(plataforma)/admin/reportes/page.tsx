@@ -58,7 +58,7 @@ export default async function Page({
           <TarjetasIndicadores resumen={resumen} />
           <div className="mt-5 flex flex-wrap gap-3">
             <a className="button" href={`/api/reportes/pdf?${new URLSearchParams({ desde, hasta })}`}>Descargar PDF</a>
-            <a className="button button-secondary" href={`/admin/reportes/compartir?${new URLSearchParams({ desde, hasta })}`}>Compartir reporte</a>
+            <a className="button-secondary" href={`/admin/reportes/compartir?${new URLSearchParams({ desde, hasta })}`}>Compartir reporte</a>
           </div>
           <p className="mt-4 text-xs text-muted">
             Calculado el {fechaHoraLocal(resumen.generadoAt)} con los datos
