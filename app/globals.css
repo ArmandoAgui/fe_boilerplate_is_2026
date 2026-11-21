@@ -295,7 +295,4 @@ nav.default-navigation a:hover {
       color: #d2e7f4;
     }
   }
-  .nav-residente-lateral a {
-    @apply flex min-h-10 items-center whitespace-nowrap border-l-2 px-3 text-xs no-underline transition-colors lg:px-5;
-  }
 }
