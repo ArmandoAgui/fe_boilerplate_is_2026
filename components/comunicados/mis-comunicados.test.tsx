@@ -19,8 +19,8 @@ const lista: Lista = {
   pagina: 1,
   tamanoPagina: 10,
 };
-describe("H24 comunicados del residente", () => {
-  it("muestra título, alcance, fecha y enlace al detalle sin incluir contenido", () => {
+describe("H24. Consultar comunicados relevantes", () => {
+  it("AC1: muestra título, alcance, fecha y enlace al detalle sin incluir contenido", () => {
     render(<MisComunicados lista={lista} />);
     expect(
       screen.getByRole("link", { name: "Mantenimiento oficial" }),
@@ -35,7 +35,7 @@ describe("H24 comunicados del residente", () => {
       screen.queryByRole("link", { name: "Anterior" }),
     ).not.toBeInTheDocument();
   });
-  it("anuncia vacío y permite regresar desde una página sin datos", () => {
+  it("AC2: anuncia vacío y permite regresar desde una página sin datos", () => {
     render(
       <MisComunicados
         lista={{ datos: [], pagina: 2, tamanoPagina: 10, total: 1 }}
@@ -49,7 +49,7 @@ describe("H24 comunicados del residente", () => {
       "?pagina=1",
     );
   });
-  it("omite confirmaciones de lectura y no ofrece otra página si ya no hay más resultados", () => {
+  it("AC5: omite confirmaciones de lectura y no ofrece otra página si ya no hay más resultados", () => {
     render(
       <MisComunicados
         lista={{
@@ -64,7 +64,7 @@ describe("H24 comunicados del residente", () => {
       screen.queryByRole("link", { name: "Siguiente" }),
     ).not.toBeInTheDocument();
   });
-  it("renderiza contenido completo como texto, sin ejecutar HTML almacenado", () => {
+  it("AC1: renderiza contenido completo como texto, sin ejecutar HTML almacenado", () => {
     const { container } = render(
       <ContenidoComunicado
         comunicado={{

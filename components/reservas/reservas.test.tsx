@@ -84,8 +84,35 @@ function formulario(inicialHora = "12:00") {
 }
 beforeEach(() => vi.clearAllMocks());
 afterEach(() => vi.useRealTimers());
-describe("H5 catálogo y disponibilidad", () => {
-  it("renderiza catálogo con capacidad y enlace", () => {
+describe("H5. Consultar disponibilidad de áreas", () => {
+  it("AC3: ofrece únicamente bloques disponibles con área, fecha y hora en el enlace", () => {
+    render(
+      <Disponibilidad
+        hoy="2099-01-01"
+        rol="RESIDENTE"
+        habilitada
+        datos={{
+          areaId: "area",
+          fecha: "2099-01-02",
+          bloques: [
+            { inicio: "12:00", fin: "13:00", estado: "DISPONIBLE" },
+            { inicio: "13:00", fin: "14:00", estado: "OCUPADO" },
+          ],
+        }}
+      />,
+    );
+    expect(
+      screen.getByRole("link", { name: /Reservar 12:00/ }),
+    ).toHaveAttribute(
+      "href",
+      "/reservas/nueva?areaId=area&fecha=2099-01-02&hora=12:00",
+    );
+    expect(
+      screen.queryByRole("link", { name: /Reservar 13:00/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("AC1: renderiza catálogo con capacidad y enlace", () => {
     render(<Catalogo areas={[area]} />);
     expect(screen.getByText(/40 personas/)).toBeInTheDocument();
     expect(screen.getByRole("link")).toHaveAttribute(
@@ -93,11 +120,11 @@ describe("H5 catálogo y disponibilidad", () => {
       "/areas/area/disponibilidad",
     );
   });
-  it("muestra catálogo vacío", () => {
+  it("AC1: muestra catálogo vacío", () => {
     render(<Catalogo areas={[]} />);
     expect(screen.getByText(/Aún no hay áreas/)).toBeInTheDocument();
   });
-  it("muestra estados, enlace precargado y recarga por fecha", () => {
+  it("AC2: muestra estados, enlace precargado y recarga por fecha", () => {
     render(
       <Disponibilidad
         hoy="2099-01-01"
@@ -128,7 +155,7 @@ describe("H5 catálogo y disponibilidad", () => {
     });
     expect(navigation.push).toHaveBeenCalledWith("?fecha=2099-01-03");
   });
-  it("administrador consulta sin acción de reservar", () => {
+  it("AC6: administrador consulta sin acción de reservar", () => {
     render(
       <Disponibilidad
         hoy="2099-01-01"
@@ -143,7 +170,7 @@ describe("H5 catálogo y disponibilidad", () => {
     );
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
-  it("muestra carga y permite reintentar errores", async () => {
+  it("AC2: muestra carga y permite reintentar errores", async () => {
     const retry = vi.fn();
     const view = render(<Loading />);
     expect(screen.getByRole("status")).toHaveTextContent("Cargando…");
@@ -153,8 +180,50 @@ describe("H5 catálogo y disponibilidad", () => {
     expect(retry).toHaveBeenCalled();
   });
 });
-describe("H6 formulario", () => {
-  it("envía datos en UTC", async () => {
+describe("H6. Confirmar una reserva personal", () => {
+  it("AC1: mantiene área, fecha e inicio en un resumen sin controles editables", () => {
+    formulario();
+    expect(
+      screen.getByRole("region", { name: "Selección de reserva" }),
+    ).toHaveTextContent("12:00");
+    for (const label of [
+      "Área común",
+      "Fecha",
+      "Hora de inicio",
+      "Unidad habitacional",
+    ]) {
+      expect(screen.queryByLabelText(label)).not.toBeInTheDocument();
+    }
+  });
+  it("AC2: permite de una a cuatro horas y actualiza la hora final", async () => {
+    formulario();
+    const duracion = screen.getByLabelText("Duración");
+    expect(within(duracion).getAllByRole("option")).toHaveLength(4);
+    await userEvent.selectOptions(duracion, "3");
+    expect(
+      screen.getByRole("region", { name: "Selección de reserva" }),
+    ).toHaveTextContent("15:00");
+  });
+  it("AC4: muestra solo la lista recibida, incluidos códigos y estado pendiente del PO", () => {
+    render(
+      <MisReservas
+        lista={{
+          datos: [{ ...reserva, estado: "PENDIENTE" }],
+          total: 1,
+          pagina: 1,
+          tamanoPagina: 20,
+        }}
+        solicitada={reserva.codigo}
+      />,
+    );
+    expect(screen.getByText(reserva.codigo)).toBeInTheDocument();
+    expect(screen.getByText("Pendiente de aprobación")).toBeInTheDocument();
+    expect(
+      screen.getByText(/solo cuando el administrador/),
+    ).toBeInTheDocument();
+  });
+
+  it("AC5: envía datos en UTC", async () => {
     vi.mocked(crearReserva).mockResolvedValue({ ok: true });
     formulario();
     await userEvent.click(
@@ -171,7 +240,7 @@ describe("H6 formulario", () => {
       ),
     );
   });
-  it("conserva formulario ante 409 y muestra mensaje exacto", async () => {
+  it("AC3: conserva formulario ante 409 y muestra mensaje exacto", async () => {
     vi.mocked(crearReserva).mockResolvedValue({
       status: 409,
       error: "Ese horario ya fue reservado. Elija otro.",
@@ -193,7 +262,7 @@ describe("H6 formulario", () => {
     expect(screen.queryByLabelText("Hora de inicio")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Fecha")).not.toBeInTheDocument();
   });
-  it("valida capacidad y horario antes de confirmar", () => {
+  it("AC2: valida capacidad y horario antes de confirmar", () => {
     formulario();
     fireEvent.change(screen.getByRole("spinbutton"), {
       target: { value: "41" },
@@ -206,7 +275,7 @@ describe("H6 formulario", () => {
       target: { value: "1" },
     });
   });
-  it("rechaza una selección fuera del horario y permite volver a disponibilidad", () => {
+  it("AC3: rechaza una selección fuera del horario y permite volver a disponibilidad", () => {
     formulario("23:00");
     expect(screen.getByText(/fuera del horario/)).toBeInTheDocument();
     expect(
@@ -219,7 +288,7 @@ describe("H6 formulario", () => {
       expect.stringContaining("/areas/area/disponibilidad?fecha="),
     );
   });
-  it("permite reservar sin unidades y no muestra selector de unidad", async () => {
+  it("AC1: permite reservar sin unidades y no muestra selector de unidad", async () => {
     const hoy = hoyLocal();
     const manana = new Date(Date.now() + 86400000 - 6 * 3600000)
       .toISOString()
@@ -255,7 +324,7 @@ describe("H6 formulario", () => {
       expect.not.objectContaining({ unidadId: expect.anything() }),
     );
   });
-  it("sin selección invita a consultar disponibilidad", () => {
+  it("AC1: sin selección invita a consultar disponibilidad", () => {
     render(<NuevaReserva areas={[area]} hoy={hoyLocal()} inicial={{}} />);
     expect(
       screen.getByRole("link", { name: "Consultar áreas" }),
@@ -265,8 +334,8 @@ describe("H6 formulario", () => {
     ).not.toBeInTheDocument();
   });
 });
-describe("H7 cancelación", () => {
-  it("muestra confirmación y actualiza estado", async () => {
+describe("H7. Cancelar una reserva personal", () => {
+  it("AC2: muestra confirmación y actualiza estado", async () => {
     vi.mocked(cancelarReserva).mockResolvedValue({ ok: true });
     render(
       <MisReservas
@@ -289,7 +358,7 @@ describe("H7 cancelación", () => {
     expect(screen.getByText("Reserva cancelada")).toBeInTheDocument();
     expect(navigation.refresh).toHaveBeenCalled();
   });
-  it("oculta cancelación para reserva cancelada", () => {
+  it("AC3: oculta cancelación para reserva cancelada", () => {
     render(
       <MisReservas
         lista={{
@@ -304,7 +373,7 @@ describe("H7 cancelación", () => {
       screen.queryByRole("button", { name: "Cancelar" }),
     ).not.toBeInTheDocument();
   });
-  it("oculta Cancelar en reservas confirmadas dentro de las próximas 24h", () => {
+  it("AC1: oculta Cancelar en reservas confirmadas dentro de las próximas 24h", () => {
     const proxima = {
       ...reserva,
       inicio: new Date(Date.now() + 12 * 3_600_000).toISOString(),
@@ -319,7 +388,7 @@ describe("H7 cancelación", () => {
       screen.queryByRole("button", { name: "Cancelar" }),
     ).not.toBeInTheDocument();
   });
-  it("muestra vacío", () => {
+  it("AC3: muestra vacío", () => {
     render(
       <MisReservas
         lista={{ datos: [], total: 0, pagina: 1, tamanoPagina: 20 }}
@@ -327,7 +396,7 @@ describe("H7 cancelación", () => {
     );
     expect(screen.getByText("Aún no tienes reservas")).toBeInTheDocument();
   });
-  it("muestra error de plazo sin cambiar estado", async () => {
+  it("AC6: muestra error de plazo sin cambiar estado", async () => {
     vi.mocked(cancelarReserva).mockResolvedValue({
       status: 409,
       error: "Solo se puede cancelar con al menos 24 horas de anticipación",
@@ -347,8 +416,8 @@ describe("H7 cancelación", () => {
     expect(screen.getByText("Confirmada")).toBeInTheDocument();
   });
 });
-describe("H8 administración", () => {
-  it("valida solapamientos y guarda todas las franjas", async () => {
+describe("H8. Administrar áreas y horarios", () => {
+  it("AC2: valida solapamientos y guarda todas las franjas", async () => {
     vi.mocked(guardarArea).mockResolvedValue({ ok: true });
     render(<AdminAreas areas={[]} />);
     expect(
@@ -382,7 +451,7 @@ describe("H8 administración", () => {
     );
     expect(await screen.findByText("Área guardada")).toBeInTheDocument();
   });
-  it("edita área inactiva y rechaza capacidad inválida", async () => {
+  it("AC1: edita área inactiva y rechaza capacidad inválida", async () => {
     render(<AdminAreas areas={[{ ...area, activa: false }]} />);
     expect(screen.getByText("Inactiva")).toBeInTheDocument();
     await userEvent.click(
