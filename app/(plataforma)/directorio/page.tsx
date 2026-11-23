@@ -3,7 +3,12 @@ import { Titulo } from "@/components/reservas/ui";
 import { BuscadorDirectorio } from "@/components/directorio/buscador";
 
 export default async function Page() {
-  await usuarioActual();
+  const usuario = await usuarioActual();
+
+  if (usuario.rol !== "RESIDENTE") {
+    return <p>No tienes permiso para ver esta página</p>;
+  }
+
   return (
     <>
       <Titulo
