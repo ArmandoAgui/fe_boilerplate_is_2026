@@ -25,7 +25,7 @@ export default async function Page({
     <>
       <Titulo
         titulo="Mis reservas"
-        detalle="Tus reservas personales, ordenadas por fecha de inicio. Las solicitudes esperan aprobación y no apartan el horario. Puedes cancelar con al menos 24 horas de anticipación."
+        detalle="Tus solicitudes esperan aprobación y no apartan el horario. Puedes cancelar con al menos 24 horas de anticipación y eliminar del listado las canceladas, rechazadas o finalizadas."
       />
       <MisReservas lista={lista} solicitada={query.solicitada} />
     </>

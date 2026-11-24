@@ -116,7 +116,7 @@ export function Navegacion({
           <Link href="/admin/incidencias">Incidencias</Link>
           <Link href="/admin/areas">Administrar áreas</Link>
           <Link href="/admin/comunicados">Comunicados</Link>
-          <Link href="/admin/reservas">Aprobar reservas</Link>
+          <Link href="/admin/reservas">Solicitudes de reserva</Link>
           <Link href="/admin/cuotas/generar">Generar cuotas</Link>
           <Link href="/admin/morosidad">Morosidad</Link>
           <Link href="/admin/cuotas">Ajustar cuotas</Link>

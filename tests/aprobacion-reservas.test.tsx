@@ -76,11 +76,11 @@ describe("Aprobación administrativa de reservas", () => {
   it("el acceso a aprobaciones aparece solo en el menú del administrador", () => {
     const { rerender } = render(<Navegacion rol="ADMINISTRADOR" />);
     expect(
-      screen.getByRole("link", { name: "Aprobar reservas" }),
+      screen.getByRole("link", { name: "Solicitudes de reserva" }),
     ).toHaveAttribute("href", "/admin/reservas");
     rerender(<Navegacion rol="RESIDENTE" />);
     expect(
-      screen.queryByRole("link", { name: "Aprobar reservas" }),
+      screen.queryByRole("link", { name: "Solicitudes de reserva" }),
     ).not.toBeInTheDocument();
   });
 });
