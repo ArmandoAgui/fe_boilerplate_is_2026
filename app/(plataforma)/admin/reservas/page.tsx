@@ -25,8 +25,8 @@ export default async function Page({
   return (
     <>
       <Titulo
-        titulo="Aprobar reservas"
-        detalle="Las solicitudes pendientes no apartan el horario. Al aprobar se comprueban disponibilidad, capacidad y cupo del residente."
+        titulo="Gestionar solicitudes de reserva"
+        detalle="Puedes aprobar o rechazar solicitudes pendientes. Al aprobar se comprueban disponibilidad, capacidad y cupo del residente; al rechazar debes indicar el motivo."
       />
       <AprobarReservas lista={lista} />
     </>
