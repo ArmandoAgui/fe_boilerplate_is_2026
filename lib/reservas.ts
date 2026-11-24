@@ -32,7 +32,8 @@ export type Reserva = {
   inicio: string;
   fin: string;
   asistentes: number;
-  estado: "PENDIENTE" | "CONFIRMADA" | "CANCELADA";
+  estado: "PENDIENTE" | "CONFIRMADA" | "CANCELADA" | "RECHAZADA";
+  motivoRechazo?: string | null;
 };
 export type ListaReservas = {
   datos: Reserva[];
@@ -73,6 +74,13 @@ export function puedeCancelar(reserva: Reserva, ahora = Date.now()) {
   return (
     (reserva.estado === "CONFIRMADA" || reserva.estado === "PENDIENTE") &&
     new Date(reserva.inicio).getTime() - ahora >= ANTICIPACION_CANCELACION_MS
+  );
+}
+export function puedeEliminar(reserva: Reserva, ahora = Date.now()) {
+  return (
+    reserva.estado === "CANCELADA" ||
+    reserva.estado === "RECHAZADA" ||
+    new Date(reserva.fin).getTime() <= ahora
   );
 }
 export function fechaHora(iso: string) {
