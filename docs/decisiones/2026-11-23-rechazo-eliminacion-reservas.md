@@ -12,7 +12,7 @@ La eliminación usa `DELETE /api/v1/reservas/{id}`; el rechazo usa `PATCH /api/v
 
 ## Integración y comprobación
 
-Requiere el PR compañero de backend con estado `RECHAZADA` y eliminación lógica. Ambos cambios se proponen a `develop`; este PR no despliega AWS. Publicar coordinadamente tras la aprobación y aplicar las migraciones del backend antes de utilizar la interfaz nueva.
+Requiere el PR compañero de backend con estado `RECHAZADA` y eliminación lógica. Hotfix `1.0.3` creado desde `main`, con PR principal hacia `main` y PR de retorno hacia `develop`. Heber revisa ambos. Integrar primero a `main` y después el retorno; este PR no despliega AWS. Publicar coordinadamente tras la aprobación y aplicar las migraciones del backend antes de utilizar la interfaz nueva.
 
 Con Node 24: `npm ci`, `npm test`, `npm run typecheck`, `npm run lint`, `npm run build`.
 
@@ -29,4 +29,8 @@ Las pruebas automatizadas cubren confirmación, validación del motivo, errores 
 
 ## Resultado local — 23/11/2026
 
-236 pruebas aprobadas, typecheck y lint correctos y build de producción completo. También se verificó con navegador y backend/PostgreSQL locales: rechazo con motivo, consulta del residente y eliminación persistente después de recargar, sin errores de JavaScript. Se revisó la interfaz de escritorio y móvil a 390 px, sin desbordamiento horizontal. No se utilizaron ni modificaron reservas de AWS para esta validación.
+Sobre la base `main`: 214 pruebas aprobadas, typecheck, lint y build correctos. La base de `develop` se comprueba por separado en el PR de retorno. También se verificó con navegador y backend/PostgreSQL locales: rechazo con motivo, consulta del residente y eliminación persistente después de recargar, sin errores de JavaScript. Se revisó la interfaz de escritorio y móvil a 390 px, sin desbordamiento horizontal. No se utilizaron ni modificaron reservas de AWS para esta validación.
+
+## Retorno a develop
+
+Esta rama integra el commit del hotfix originado en `main` y conserva las pruebas adicionales de `develop`. El PR de retorno debe fusionarse después del PR de producción; no publica cambios ajenos hacia `main`. La aprobación previa correspondía al commit anterior: se solicita a Heber revisar esta actualización.
