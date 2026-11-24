@@ -347,8 +347,9 @@ describe("H7. Cancelar una reserva personal", () => {
     await userEvent.click(screen.getByRole("button", { name: "Cancelar" }));
     const dialog = screen.getByRole("dialog");
     expect(dialog).toHaveTextContent(
-      "¿Cancelar la reserva RES-000001? Esta acción no se puede deshacer",
+      "¿Cancelar la reserva RES-000001?",
     );
+    expect(dialog).toHaveTextContent("Esta acción no se puede deshacer");
     await userEvent.click(
       within(dialog).getByRole("button", { name: "Cancelar reserva" }),
     );

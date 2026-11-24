@@ -79,3 +79,30 @@ export async function aprobarReserva(id: string): Promise<Resultado> {
   revalidatePath("/areas", "layout");
   return { ok: true };
 }
+
+export async function rechazarReserva(
+  id: string,
+  motivo: string,
+): Promise<Resultado> {
+  try {
+    await api(`reservas/${encodeURIComponent(id)}/rechazo`, {
+      method: "PATCH",
+      body: JSON.stringify({ motivo }),
+    });
+  } catch (error) {
+    return fallo(error);
+  }
+  revalidatePath("/admin/reservas");
+  revalidatePath("/reservas");
+  return { ok: true };
+}
+
+export async function eliminarReserva(id: string): Promise<Resultado> {
+  try {
+    await api(`reservas/${encodeURIComponent(id)}`, { method: "DELETE" });
+  } catch (error) {
+    return fallo(error);
+  }
+  revalidatePath("/reservas");
+  return { ok: true };
+}
